@@ -23,6 +23,7 @@ urlpatterns = [
     # User management
     path("users/", include("socialmedia.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
+    path("", include("cms.urls")),
     # Your stuff: custom urls includes go here
     # ...
     # Media files

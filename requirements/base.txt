@@ -20,3 +20,21 @@ djangorestframework==3.15.1  # https://github.com/encode/django-rest-framework
 django-cors-headers==4.3.1  # https://github.com/adamchainz/django-cors-headers
 # DRF-spectacular for api documentation
 drf-spectacular==0.27.2  # https://github.com/tfranzel/drf-spectacular
+
+# Django CMS
+djangocms_admin_style==3.3.0  # or the latest version
+
+# Additional Django CMS Plugins
+djangocms-versioning==1.12.0  # https://github.com/django-cms/djangocms-versioning
+djangocms-alias==1.0.2  # https://github.com/django-cms/djangocms-alias
+filer==2.4.0  # https://github.com/divio/django-filer
+easy-thumbnails==2.8  # https://github.com/SmileyChris/easy-thumbnails
+djangocms-text-ckeditor==3.10.0  # https://github.com/django-cms/djangocms-text-ckeditor
+djangocms-frontend==1.2.0  # https://github.com/django-cms/djangocms-frontend
+djangocms-frontend-contrib==1.2.0  # https://github.com/django-cms/djangocms-frontend-contrib
+djangocms-file==2.0.1  # https://github.com/django-cms/djangocms-file
+djangocms-picture==2.0.0  # https://github.com/django-cms/djangocms-picture
+djangocms-video==2.1.0  # https://github.com/django-cms/djangocms-video
+djangocms-googlemap==1.1.0  # https://github.com/django-cms/djangocms-googlemap
+djangocms-snippet==1.1.0  # https://github.com/django-cms/djangocms-snippet
+djangocms-style==2.1.0  # https://github.com/django-cms/djangocms-style

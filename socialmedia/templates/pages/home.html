@@ -18,9 +18,15 @@
   <body>
     {% cms_toolbar %}
     {% render_block "js" %}
-    <ul class="nav">
-      {% show_menu 0 100 100 100 %}
-    </ul>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <ul class="nav">
+          <li class="breadcrumb-item">
+            <a href="#">{% show_menu %}</a>
+          </li>
+        </ul>
+      </ol>
+    </nav>
     {% block content %}
       <h1>{% placeholder "title" %}</h1>
       {% placeholder "home" %}

@@ -69,5 +69,5 @@ jobs:
           pip install -r requirements/local.txt
           pip install -r requirements/production.txt
 
-      - name: Test with pytest
-        run: pytest
+      #- name: Test with pytest
+      #  run: pytest

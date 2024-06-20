@@ -1,0 +1,39 @@
+body {
+    background-color: #f0f2f5;
+  }
+
+  .navbar {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar-custom {
+    background-color: #e3f2fd;
+  }
+
+  .sidebar {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    margin-right: 20px;
+    flex: 0 0 25%;
+  }
+
+  .content {
+    margin-top: 20px;
+    flex: 1;
+  }
+
+  .post {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .main-container {
+    display: flex;
+  }

@@ -14,76 +14,52 @@
           integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
           crossorigin="anonymous" />
     <!-- Custom CSS -->
-    <style>
-      body {
-        background-color: #f0f2f5;
-      }
-
-      .navbar {
-        background-color: #fff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .sidebar {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-top: 20px;
-      }
-
-      .content {
-        margin-top: 20px;
-      }
-
-      .post {
-        background-color: #fff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-      }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
     <title>{% placeholder "title" %}</title>
   </head>
   <body>
     {% cms_toolbar %}
     {% render_block "js" %}
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-light navbar-custom">
       <a class="navbar-brand" href="#">SocialMediaApp</a>
       <button class="navbar-toggler"
               type="button"
               data-toggle="collapse"
-              data-target="#navbarNav"
-              aria-controls="navbarNav"
+              data-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent"
               aria-expanded="false"
               aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
           {% show_menu 0 1 100 100 %}
         </ul>
+        <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2"
+                 type="search"
+                 placeholder="Search"
+                 aria-label="Search" />
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
       </div>
     </nav>
     <!-- Main Content Area -->
-    <div class="container">
-      <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 sidebar">
-          <h4>Sidebar</h4>
-          {% placeholder "sidebar" %}
-        </div>
-        <!-- Content Area -->
-        <div class="col-md-9 content">
-          {% block content %}
-            <div class="post">
-              <h1>{% placeholder "title" %}</h1>
-              {% placeholder "home" %}
-            </div>
-          {% endblock content %}
-        </div>
+    <div class="container main-container">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <h4>Sidebar</h4>
+        {% placeholder "sidebar" %}
+      </div>
+      <!-- Content Area -->
+      <div class="content">
+        {% block content %}
+          <div class="post">
+            <h1>{% placeholder "title" %}</h1>
+            {% placeholder "home" %}
+          </div>
+        {% endblock content %}
       </div>
     </div>
     <!-- Optional JavaScript -->

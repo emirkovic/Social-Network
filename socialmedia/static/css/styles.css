@@ -4,12 +4,28 @@ body {
 }
 
 .navbar {
-  background-color: #fff;
+  background-color: #0d6efd !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.navbar-custom {
-  background-color: #e3f2fd;
+.navbar a {
+  color: white !important;
+}
+
+.navbar a:hover {
+  color: #d1d1d1 !important;
+}
+
+.navbar .dropdown-menu {
+  background-color: #354358;
+}
+
+.navbar .dropdown-menu a {
+  color: white !important;
+}
+
+.navbar .dropdown-menu a:hover {
+  background-color: #004085 !important;
 }
 
 .sidebar {

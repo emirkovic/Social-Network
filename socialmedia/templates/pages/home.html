@@ -27,7 +27,7 @@
     {% render_block "js" %}
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light custom-navbar">
-      <a class="navbar-brand" href="#">SocialMediaApp</a>
+      <a class="navbar-brand" href="{% url 'home' %}">SocialMediaApp</a>
       <button class="navbar-toggler"
               type="button"
               data-toggle="collapse"
@@ -44,51 +44,104 @@
       </div>
     </nav>
     <!-- Main Content Area -->
-    <div class="container main-container d-flex flex-column min-vh-100">
-      <div class="row flex-grow-1">
-        <!-- Sidebar -->
-        <div class="col-md-3 sidebar">
-          <h4>Sidebar</h4>
-          {% placeholder "sidebar" %}
+    <div class="container text-center my-5">
+      <div class="row">
+        <div class="col-lg-12">
+          <h1 class="display-4">Welcome to our App</h1>
+          <p class="lead">
+            Our app allows people to create, share or exchange information, ideas, and pictures/videos in virtual communities and networks.
+          </p>
+          <button type="button" class="btn btn-primary btn-lg">Get Started</button>
         </div>
-        <!-- Content Area -->
-        <div class="col-md-9 content">
-          {% block content %}
-            <div class="post">
-              <h1>{% placeholder "title" %}</h1>
-              {% placeholder "home" %}
-            </div>
-          {% endblock content %}
+      </div>
+      <div class="row mt-5">
+        <div class="col-lg-12">
+          <img src="{% static 'images/profile-placeholder.png' %}"
+               alt="User"
+               class="img-fluid user-image" />
         </div>
       </div>
     </div>
     <!-- Footer -->
-    <footer class="text-center text-lg-start custom-footer">
-      <div class="container d-flex justify-content-center py-5">
-        <button type="button"
-                class="btn btn-primary btn-lg btn-floating mx-2 custom-button">
-          <i class="fab fa-facebook-f"></i>
-        </button>
-        <button type="button"
-                class="btn btn-primary btn-lg btn-floating mx-2 custom-button">
-          <i class="fab fa-youtube"></i>
-        </button>
-        <button type="button"
-                class="btn btn-primary btn-lg btn-floating mx-2 custom-button">
-          <i class="fab fa-instagram"></i>
-        </button>
-        <button type="button"
-                class="btn btn-primary btn-lg btn-floating mx-2 custom-button">
-          <i class="fab fa-twitter"></i>
-        </button>
-      </div>
-      <!-- Copyright -->
-      <div class="text-center text-white p-3 custom-copyright">
+    <footer class="text-center text-lg-start bg-light text-muted">
+      <section class="d-flex justify-content-center justify-content-lg-between p-4 border-bottom">
+        <div class="me-5 d-none d-lg-block">
+          <span>Get connected with us on social networks:</span>
+        </div>
+        <div>
+          <a href="" class="me-4 text-reset">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+          <a href="" class="me-4 text-reset">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="" class="me-4 text-reset">
+            <i class="fab fa-google"></i>
+          </a>
+          <a href="" class="me-4 text-reset">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="" class="me-4 text-reset">
+            <i class="fab fa-linkedin"></i>
+          </a>
+          <a href="" class="me-4 text-reset">
+            <i class="fab fa-github"></i>
+          </a>
+        </div>
+      </section>
+      <section>
+        <div class="container text-center text-md-start mt-5">
+          <div class="row mt-3">
+            <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
+              <h6 class="text-uppercase fw-bold mb-4">SocialMediaApp</h6>
+              <p>
+                Here you can use rows and columns to organize your footer content. Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+              </p>
+            </div>
+            <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
+              <h6 class="text-uppercase fw-bold mb-4">Company</h6>
+              <p>
+                <a href="#!" class="text-reset">How it works</a>
+              </p>
+              <p>
+                <a href="#!" class="text-reset">Pricing</a>
+              </p>
+              <p>
+                <a href="#!" class="text-reset">Docs</a>
+              </p>
+            </div>
+            <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
+              <h6 class="text-uppercase fw-bold mb-4">Resources</h6>
+              <p>
+                <a href="#!" class="text-reset">Blog post name list goes here</a>
+              </p>
+              <p>
+                <a href="#!" class="text-reset">Blog post name list goes here</a>
+              </p>
+              <p>
+                <a href="#!" class="text-reset">Blog post name list goes here</a>
+              </p>
+              <p>
+                <a href="#!" class="text-reset">See all resources ></a>
+              </p>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
+              <h6 class="text-uppercase fw-bold mb-4">About</h6>
+              <p>
+                <a href="#!" class="text-reset">Terms & Conditions</a>
+              </p>
+              <p>
+                <a href="#!" class="text-reset">Privacy policy</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="text-center p-4 footer-bg">
         © 2020 Copyright:
-        <a class="text-white" href="https://mdbootstrap.com/">MDBootstrap.com</a>
+        <a class="text-reset fw-bold" href="https://mdbootstrap.com/">MDBootstrap.com</a>
       </div>
     </footer>
-    <!-- Footer -->
     <!-- Optional JavaScript -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"

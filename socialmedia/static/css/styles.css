@@ -1,8 +1,14 @@
+/* General Styles */
 body {
   background-color: #f0f2f5;
   height: 100%;
 }
 
+html, body {
+  height: 100%;
+}
+
+/* Navbar Styles */
 .navbar {
   background-color: #0d6efd !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -28,6 +34,7 @@ body {
   background-color: #004085 !important;
 }
 
+/* Sidebar Styles */
 .sidebar {
   background-color: #fff;
   padding: 20px;
@@ -40,6 +47,7 @@ body {
   height: 100%;
 }
 
+/* Content Styles */
 .content {
   margin-top: 20px;
   flex: 1;
@@ -55,17 +63,18 @@ body {
   margin-bottom: 20px;
 }
 
+/* Main Container Styles */
 .main-container {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
-html, body {
-  height: 100%;
-}
-
+/* Footer Styles */
 footer {
   position: relative;
   bottom: 0;
@@ -104,4 +113,47 @@ footer {
 
 .custom-copyright {
   background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* New Styles for Centered Content */
+.container.text-center.my-5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.container.text-center.my-5 .row {
+  margin-top: 20px;
+}
+
+.container.text-center.my-5 .lead {
+  margin-bottom: 30px;
+}
+
+.container.text-center.my-5 img {
+  max-width: 200px;
+  margin-top: 20px;
+}
+
+/* Custom Footer Links */
+.custom-footer a {
+  color: #ffffff;
+}
+
+.custom-footer a:hover {
+  color: #d1d1d1;
+}
+
+.custom-footer .btn {
+  margin: 0 10px;
+}
+
+.footer-bg {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.user-image {
+  max-width: 200px;
 }

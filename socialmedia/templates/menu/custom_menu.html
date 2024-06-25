@@ -21,8 +21,8 @@
         {% for grandchild in child.children %}
           <a class="dropdown-item" href="{{ grandchild.get_absolute_url }}">{{ grandchild.get_menu_title }}</a>
         {% endfor %}
-        <a class="dropdown-item" href="{% url 'users:home' %}">Home</a>
-        <a class="dropdown-item" href="{% url 'users:about' %}">About</a>
+        <a class="dropdown-item" href="{% url 'home' %}">Home</a>
+        <a class="dropdown-item" href="{% url 'about' %}">About</a>
       </div>
     {% endif %}
   </li>

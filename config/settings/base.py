@@ -133,6 +133,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 CMS_TEMPLATES = [
     ("pages/home.html", "Home page template"),
+    ("pages/about.html", "About page template"),
 ]
 
 # MIGRATIONS

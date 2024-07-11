@@ -8,7 +8,6 @@ html, body {
   height: 100%;
 }
 
-/* Navbar Styles */
 .navbar {
   background-color: #0d6efd !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -42,24 +41,35 @@ html, body {
   margin-left: 5px;
 }
 
-/* Profile Image Styles */
 .profile-img {
   width: 30px;
 }
 
 .profile-img-large {
   width: 100px;
+  height: 100px;
 }
 
 .post-img {
-  width: 80px;
+  width: 150px;
+  height: auto;
+}
+
+.post-video {
+  width: 150px;
+  height: auto;
+}
+
+.comment-img {
+  width: 40px;
+  height: 40px;
 }
 
 .follow-img {
   width: 50px;
+  height: 50px;
 }
 
-/* Align search input and upload button */
 .navbar .form-inline {
   display: flex;
   align-items: center;
@@ -74,7 +84,6 @@ html, body {
   line-height: 1.5;
 }
 
-/* Sidebar Styles */
 .sidebar {
   background-color: #fff;
   padding: 20px;
@@ -87,7 +96,6 @@ html, body {
   height: 100%;
 }
 
-/* Content Styles */
 .content {
   margin-top: 20px;
   flex: 1;
@@ -101,9 +109,51 @@ html, body {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-/* Main Container Styles */
+.post .post-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.post .post-actions {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.post .post-actions .action-btn {
+  margin: 0 10px;
+}
+
+.comment-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.post .post-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.post .post-actions .like-btn,
+.post .post-actions .comment-btn {
+  margin: 0 5px;
+}
+
+.comment-section .comment {
+  margin: 10px 0;
+  width: 100%;
+  text-align: left;
+}
+
 .main-container {
   display: flex;
   flex: 1;
@@ -114,7 +164,6 @@ html, body {
   text-align: center;
 }
 
-/* Footer Styles */
 footer {
   position: relative;
   bottom: 0;
@@ -155,7 +204,6 @@ footer {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-/* New Styles for Centered Content */
 .container.text-center.my-5 {
   display: flex;
   flex-direction: column;
@@ -177,7 +225,6 @@ footer {
   margin-top: 20px;
 }
 
-/* Custom Footer Links */
 .custom-footer a {
   color: #ffffff;
 }
@@ -198,7 +245,6 @@ footer {
   max-width: 200px;
 }
 
-/* Profile Content Styles */
 .profile-content {
   background-color: #fff;
   padding: 20px;

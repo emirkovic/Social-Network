@@ -49,12 +49,6 @@
         </form>
         <ul class="navbar-nav">
           <li class="nav-item">
-            <button class="btn btn-primary my-2 my-sm-0" type="button">Upload Pics / Videos</button>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="#"><i class="fas fa-comments"></i></a>
           </li>
           <li class="nav-item dropdown">
@@ -86,15 +80,19 @@
         <div class="col-lg-8">
           <div class="post-content bg-white p-4 rounded shadow-sm">
             <div class="post mb-4">
-              {% if post_detail.image %}<img src="{{ post_detail.image.url }}" alt="Post Image" class="img-fluid" />{% endif %}
+              {% if post_detail.image %}
+                <img src="{{ post_detail.image.url }}" alt="Post Image" class="img-fluid" />
+              {% elif post_detail.video %}
+                <video controls class="img-fluid">
+                  <source src="{{ post_detail.video.url }}" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              {% endif %}
               <div class="details mt-3">
                 <h4>{{ post_detail.user.username }}</h4>
                 <p>{{ post_detail.text }}</p>
                 <button class="btn btn-light">
                   <i class="far fa-thumbs-up"></i> Like
-                </button>
-                <button class="btn btn-light">
-                  <i class="far fa-comment"></i> Comment
                 </button>
               </div>
             </div>
@@ -120,116 +118,8 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-4">
-          <div class="sidebar bg-white p-4 rounded shadow-sm">
-            <h3>Users You Can Follow</h3>
-            <ul class="list-unstyled follow-suggestions">
-              <li class="d-flex align-items-center mb-3">
-                <img src="{% static 'images/user1.jpg' %}"
-                     alt="User 1"
-                     class="rounded-circle follow-img" />
-                <span>Taiye</span>
-                <button class="btn btn-primary ml-auto">Follow</button>
-              </li>
-              <li class="d-flex align-items-center mb-3">
-                <img src="{% static 'images/user2.jpg' %}"
-                     alt="User 2"
-                     class="rounded-circle follow-img" />
-                <span>Kayode</span>
-                <button class="btn btn-primary ml-auto">Follow</button>
-              </li>
-              <li class="d-flex align-items-center mb-3">
-                <img src="{% static 'images/user3.jpg' %}"
-                     alt="User 3"
-                     class="rounded-circle follow-img" />
-                <span>Faith_do</span>
-                <button class="btn btn-primary ml-auto">Follow</button>
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
     </div>
-    <!-- Footer -->
-    <footer class="text-center text-lg-start bg-light text-muted mt-auto">
-      <section class="d-flex justify-content-center justify-content-lg-between p-4 border-bottom">
-        <div class="me-5 d-none d-lg-block">
-          <span>Get connected with us on social networks:</span>
-        </div>
-        <div>
-          <a href="" class="me-4 text-reset">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a href="" class="me-4 text-reset">
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a href="" class="me-4 text-reset">
-            <i class="fab fa-google"></i>
-          </a>
-          <a href="" class="me-4 text-reset">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="" class="me-4 text-reset">
-            <i class="fab fa-linkedin"></i>
-          </a>
-          <a href="" class="me-4 text-reset">
-            <i class="fab fa-github"></i>
-          </a>
-        </div>
-      </section>
-      <section>
-        <div class="container text-center text-md-start mt-5">
-          <div class="row mt-3">
-            <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
-              <h6 class="text-uppercase fw-bold mb-4">SocialMediaApp</h6>
-              <p>
-                Here you can use rows and columns to organize your footer content. Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              </p>
-            </div>
-            <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
-              <h6 class="text-uppercase fw-bold mb-4">Company</h6>
-              <p>
-                <a href="#!" class="text-reset">How it works</a>
-              </p>
-              <p>
-                <a href="#!" class="text-reset">Pricing</a>
-              </p>
-              <p>
-                <a href="#!" class="text-reset">Docs</a>
-              </p>
-            </div>
-            <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
-              <h6 class="text-uppercase fw-bold mb-4">Resources</h6>
-              <p>
-                <a href="#!" class="text-reset">Blog post name list goes here</a>
-              </p>
-              <p>
-                <a href="#!" class="text-reset">Blog post name list goes here</a>
-              </p>
-              <p>
-                <a href="#!" class="text-reset">Blog post name list goes here</a>
-              </p>
-              <p>
-                <a href="#!" class="text-reset">See all resources ></a>
-              </p>
-            </div>
-            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mb-md-0 mb-4">
-              <h6 class="text-uppercase fw-bold mb-4">About</h6>
-              <p>
-                <a href="#!" class="text-reset">Terms & Conditions</a>
-              </p>
-              <p>
-                <a href="#!" class="text-reset">Privacy policy</a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <div class="text-center p-4 footer-bg">
-        © 2020 Copyright:
-        <a class="text-reset fw-bold" href="https://mdbootstrap.com/">MDBootstrap.com</a>
-      </div>
-    </footer>
     <!-- Optional JavaScript -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
             integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"

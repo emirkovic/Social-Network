@@ -12,7 +12,7 @@ def index(request):
         post_form = PostForm(request.POST, request.FILES)
         if post_form.is_valid():
             post = post_form.save(commit=False)
-            post.user = request.user  # Assuming a user is logged in
+            post.user = request.user
             post.save()
             return redirect("social:index")
     else:
@@ -20,7 +20,6 @@ def index(request):
 
     latest_post_list = Post.objects.filter(deleted=False).order_by("-created")
 
-    # Fetch the two most recent comments for each post
     posts_with_comments = []
     for post in latest_post_list:
         comments = post.comments.filter(deleted=False).order_by("-created")[:2]
@@ -40,13 +39,12 @@ def detail(request, post_id):
         if comment_form.is_valid():
             comment = comment_form.save(commit=False)
             comment.post = post
-            comment.user = request.user  # Assuming a user is logged in
+            comment.user = request.user
             comment.save()
             return redirect("social:detail", post_id=post_id)
     else:
         comment_form = CommentForm()
 
-    # Retrieve all comments for the detail page
     comments = post.comments.filter(deleted=False).order_by("-created")
 
     context = {

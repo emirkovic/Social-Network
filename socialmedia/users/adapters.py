@@ -19,7 +19,7 @@ class AccountAdapter(DefaultAccountAdapter):
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
     def get_login_redirect_url(self, request: HttpRequest) -> str:
-        return reverse("profile")
+        return reverse("social:index")
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
@@ -52,4 +52,4 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def get_login_redirect_url(self, request: HttpRequest) -> str:
-        return reverse("profile")
+        return reverse("social:index")

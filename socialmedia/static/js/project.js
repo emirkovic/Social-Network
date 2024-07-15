@@ -12,7 +12,17 @@ document.addEventListener("DOMContentLoaded", function () {
     commentForms.forEach(function (form) {
         form.addEventListener("submit", function (event) {
             var textField = form.querySelector("input[name='text']");
-            if (!textField.value.trim()) {
+            var maxWords = 10;
+            var maxChars = 20;
+            var words = textField.value.trim().split(/\s+/);
+            var chars = textField.value.trim().length;
+            if (words.length > maxWords) {
+                event.preventDefault();
+                showAlert(`This field cannot contain more than ${maxWords} words.`);
+            } else if (chars > maxChars) {
+                event.preventDefault();
+                showAlert(`This field cannot contain more than ${maxChars} characters.`);
+            } else if (!textField.value.trim()) {
                 event.preventDefault();
                 showAlert("You need to insert a comment");
             }
@@ -24,7 +34,17 @@ document.addEventListener("DOMContentLoaded", function () {
         var textField = document.querySelector("textarea[name='text']");
         var imageField = document.querySelector("input[name='image']");
         var videoField = document.querySelector("input[name='video']");
-        if (!textField.value.trim() || (!imageField.files.length && !videoField.files.length)) {
+        var maxWords = 10;
+        var maxChars = 20;
+        var words = textField.value.trim().split(/\s+/);
+        var chars = textField.value.trim().length;
+        if (words.length > maxWords) {
+            event.preventDefault();
+            showAlert(`This field cannot contain more than ${maxWords} words.`);
+        } else if (chars > maxChars) {
+            event.preventDefault();
+            showAlert(`This field cannot contain more than ${maxChars} characters.`);
+        } else if (!textField.value.trim() || (!imageField.files.length && !videoField.files.length)) {
             event.preventDefault();
             showAlert("You need to insert a comment and image or video");
         }

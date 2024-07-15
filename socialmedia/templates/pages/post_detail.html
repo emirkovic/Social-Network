@@ -17,32 +17,6 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.css" />
     <link rel="stylesheet" href="{% static 'css/profile.css' %}" />
-    <style>
-      .post-content {
-        background-color: #ffffff;
-        border: 1px solid #cccccc;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .post-content .details {
-        padding: 15px;
-      }
-
-      .post-content .comment-form {
-        border-top: 1px solid #e0e0e0;
-        padding-top: 15px;
-      }
-
-      .post-image {
-        transition: opacity 0.3s ease;
-      }
-
-      .post-image:hover {
-        opacity: 0.7;
-      }
-    </style>
     <title>Post Detail - Social Media App</title>
   </head>
   <body>
@@ -202,24 +176,5 @@
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
     <script src="{% static 'js/project.js' %}"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        function showAlert(message) {
-          var alertBox = document.getElementById("customAlert");
-          var alertMessage = document.getElementById("alertMessage");
-          alertMessage.textContent = message;
-          alertBox.style.display = "block";
-        }
-
-        var commentForm = document.querySelector(".comment-form");
-        commentForm.addEventListener("submit", function(event) {
-          var textField = commentForm.querySelector("input[name='text']");
-          if (!textField.value.trim()) {
-            event.preventDefault();
-            showAlert("You need to insert a comment");
-          }
-        });
-      });
-    </script>
   </body>
 </html>

@@ -112,7 +112,22 @@
             <div class="profile-content bg-white p-4 rounded shadow-sm">
               <form id="postForm" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ post_form.as_p }}
+                {{ post_form.non_field_errors }}
+                <div class="form-group">
+                  <label for="postText">Insert text</label>
+                  {{ post_form.text }}
+                  {% if post_form.text.errors %}<div class="text-danger">{{ post_form.text.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                  <label for="postImage">Image</label>
+                  {{ post_form.image }}
+                  {% if post_form.image.errors %}<div class="text-danger">{{ post_form.image.errors }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                  <label for="postVideo">Video</label>
+                  {{ post_form.video }}
+                  {% if post_form.video.errors %}<div class="text-danger">{{ post_form.video.errors }}</div>{% endif %}
+                </div>
                 <button type="submit" class="btn btn-primary">Create Post</button>
               </form>
               {% for post, comments in posts_with_comments %}
@@ -169,10 +184,13 @@
                           action="{% url 'social:detail' post.id %}"
                           class="comment-form mt-2">
                       {% csrf_token %}
+                      {{ comment_form.non_field_errors }}
                       <input type="text"
                              name="text"
                              class="form-control"
-                             placeholder="Leave a comment" />
+                             placeholder="Leave a comment"
+                             value="{{ comment_form.text.value|default_if_none:'' }}" />
+                      {% if comment_form.text.errors %}<div class="text-danger">{{ comment_form.text.errors }}</div>{% endif %}
                       <button type="submit" class="btn btn-info ml-2">Post</button>
                     </form>
                   </div>
@@ -267,20 +285,13 @@
         </div>
       </div>
     </main>
+    <div id="customAlert" class="custom-alert">
+      <span id="alertMessage"></span>
+      <button onclick="document.getElementById('customAlert').style.display='none'">OK</button>
+    </div>
+    <!-- MDB -->
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
+    <script src="{% static 'js/project.js' %}"></script>
   </body>
-  <!-- MDB -->
-  <script type="text/javascript"
-          src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("uploadBtn").addEventListener("click", function() {
-        var postForm = document.getElementById("postForm");
-        if (postForm.style.display === "none" || postForm.style.display === "") {
-          postForm.style.display = "block";
-        } else {
-          postForm.style.display = "none";
-        }
-      });
-    });
-  </script>
 </html>

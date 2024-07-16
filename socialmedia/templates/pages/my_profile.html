@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="profile-actions">
-        <a href="{% url 'social:index' %}" class="btn btn-primary">Return to Social</a>
+        <a href="{% url 'social:index' %}" class="btn btn-primary">Return to Social Media</a>
         {% if user != request.user %}
           {% if user in request.user.profile.following.all %}
             <form action="{% url 'social:unfollow' user.id %}"

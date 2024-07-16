@@ -7,8 +7,10 @@ from django.views.decorators.http import require_POST
 
 from .forms import CommentForm
 from .forms import PostForm
+from .forms import UserProfileForm
 from .models import Like
 from .models import Post
+from .models import UserProfile
 
 
 def index(request):
@@ -62,6 +64,23 @@ def detail(request, post_id):
         "last_liked_user": last_liked_user,
     }
     return render(request, "pages/post_detail.html", context)
+
+
+@login_required
+def settings_view(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    if request.method == "POST":
+        form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+        if form.is_valid():
+            form.save()
+            return redirect("social:index")
+    else:
+        form = UserProfileForm(instance=user_profile)
+
+    context = {
+        "form": form,
+    }
+    return render(request, "pages/settings.html", context)
 
 
 @login_required

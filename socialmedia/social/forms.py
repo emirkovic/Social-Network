@@ -2,6 +2,13 @@ from django import forms
 
 from .models import Comment
 from .models import Post
+from .models import UserProfile
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ["profile_image", "bio", "location"]
 
 
 class PostForm(forms.ModelForm):

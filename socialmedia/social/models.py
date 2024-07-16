@@ -24,6 +24,8 @@ def validate_word_count(value):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    bio = models.TextField(blank=True, default="")
+    location = models.CharField(max_length=255, blank=True, default="")
     following = models.ManyToManyField(User, related_name="followers", blank=True)
     active = models.BooleanField(default=True)
 

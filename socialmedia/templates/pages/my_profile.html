@@ -1,0 +1,92 @@
+{% load static i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ user.username }}'s Profile</title>
+    <link rel="stylesheet" href="{% static 'css/my_profile.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="profile-header">
+        {% if user.profile.profile_image %}
+          <img src="{{ user.profile.profile_image.url }}"
+               alt="{{ user.username }}"
+               class="profile-img" />
+        {% else %}
+          <img src="https://via.placeholder.com/150"
+               alt="{{ user.username }}"
+               class="profile-img" />
+        {% endif %}
+        <div class="profile-info">
+          <h1>{{ user.username }}</h1>
+          {% if user.profile.first_name or user.profile.last_name %}
+            <h2>{{ user.profile.first_name }} {{ user.profile.last_name }}</h2>
+          {% endif %}
+          {% if user.profile.bio %}<p>{{ user.profile.bio }}</p>{% endif %}
+          {% if user.profile.location %}<p>{{ user.profile.location }}</p>{% endif %}
+        </div>
+        <div class="profile-stats">
+          <span>{{ posts.count }} Posts</span>
+          <span>{{ user.profile.followers.count|default_if_none:"0" }} Followers</span>
+          <span>{{ user.profile.following.count|default_if_none:"0" }} Following</span>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <a href="{% url 'social:index' %}" class="btn btn-primary">Return to Social</a>
+        {% if user != request.user %}
+          {% if user in request.user.profile.following.all %}
+            <form action="{% url 'social:unfollow' user.id %}"
+                  method="post"
+                  class="inline-form">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary">Unfollow</button>
+            </form>
+          {% else %}
+            <form action="{% url 'social:follow' user.id %}"
+                  method="post"
+                  class="inline-form">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary">Follow</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+      <div class="profile-posts">
+        {% for post in posts %}
+          {% if post.image %}
+            <div class="post">
+              <img src="{{ post.image.url }}"
+                   alt="Post Image"
+                   class="post-img"
+                   onclick="openModal('{{ post.image.url }}')" />
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    <div id="myModal" class="modal">
+      <span class="close" onclick="closeModal()">×</span>
+      <div class="modal-content">
+        <img id="modalImage" alt="Modal Image" />
+      </div>
+    </div>
+    <script src="{% static 'js/project.js' %}"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', (event) => {
+        document.getElementById("myModal").style.display = "none";
+      });
+
+      function openModal(src) {
+        document.getElementById("myModal").style.display = "flex";
+        document.getElementById("modalImage").src = src;
+      }
+
+      function closeModal() {
+        document.getElementById("myModal").style.display = "none";
+      }
+    </script>
+  </body>
+</html>

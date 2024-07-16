@@ -101,3 +101,30 @@ def like_post(request, post_id):
     return JsonResponse(
         {"total_likes": total_likes, "last_liked_user": last_liked_user},
     )
+
+
+@login_required
+def my_profile(request, username):
+    user = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=user, image__isnull=False, deleted=False).order_by(
+        "-created",
+    )
+    context = {
+        "user": user,
+        "posts": posts,
+    }
+    return render(request, "pages/my_profile.html", context)
+
+
+@login_required
+def follow(request, user_id):
+    user_to_follow = get_object_or_404(User, id=user_id)
+    request.user.profile.following.add(user_to_follow)
+    return redirect("social:my_profile", username=user_to_follow.username)
+
+
+@login_required
+def unfollow(request, user_id):
+    user_to_unfollow = get_object_or_404(User, id=user_id)
+    request.user.profile.following.remove(user_to_unfollow)
+    return redirect("social:my_profile", username=user_to_unfollow.username)

@@ -97,7 +97,8 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                       <li>
-                        <a class="dropdown-item" href="#">My profile</a>
+                        <a class="dropdown-item"
+                           href="{% url 'social:my_profile' request.user.username %}">My profile</a>
                       </li>
                       <li>
                         <a class="dropdown-item" href="{% url 'social:settings' %}">Settings</a>

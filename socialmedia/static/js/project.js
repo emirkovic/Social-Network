@@ -1,5 +1,3 @@
-// static/js/project.js
-
 document.addEventListener("DOMContentLoaded", function () {
     function showAlert(message) {
         var alertBox = document.getElementById("customAlert");
@@ -58,5 +56,25 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             postForm.style.display = "none";
         }
+    });
+
+    document.querySelectorAll(".like-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const postId = this.dataset.postId;
+            fetch(`/social/post/${postId}/like/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                    "Content-Type": "application/json"
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.total_likes !== undefined) {
+                    document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
+                    document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
+                }
+            });
+        });
     });
 });

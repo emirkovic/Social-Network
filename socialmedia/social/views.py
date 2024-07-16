@@ -1,9 +1,13 @@
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from .forms import CommentForm
 from .forms import PostForm
+from .models import Like
 from .models import Post
 
 
@@ -23,7 +27,10 @@ def index(request):
     posts_with_comments = []
     for post in latest_post_list:
         comments = post.comments.filter(deleted=False).order_by("-created")[:2]
-        posts_with_comments.append((post, comments))
+        last_liked_user = (
+            post.likes.last().user.username if post.likes.count() > 0 else ""
+        )
+        posts_with_comments.append((post, comments, last_liked_user))
 
     context = {
         "posts_with_comments": posts_with_comments,
@@ -46,10 +53,26 @@ def detail(request, post_id):
         comment_form = CommentForm()
 
     comments = post.comments.filter(deleted=False).order_by("-created")
+    last_liked_user = post.likes.last().user.username if post.likes.count() > 0 else ""
 
     context = {
         "post_detail": post,
         "comment_form": comment_form,
         "comments": comments,
+        "last_liked_user": last_liked_user,
     }
     return render(request, "pages/post_detail.html", context)
+
+
+@login_required
+@require_POST
+def like_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id, deleted=False)
+    like, created = Like.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        like.delete()
+    total_likes = post.likes.count()
+    last_liked_user = post.likes.last().user.username if total_likes > 0 else None
+    return JsonResponse(
+        {"total_likes": total_likes, "last_liked_user": last_liked_user},
+    )

@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var textField = document.querySelector("textarea[name='text']");
         var imageField = document.querySelector("input[name='image']");
         var videoField = document.querySelector("input[name='video']");
+        var youtubeLinkField = document.querySelector("input[name='youtube_link']");
         var maxWords = 10;
         var maxChars = 20;
         var words = textField.value.trim().split(/\s+/);
@@ -44,9 +45,9 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (chars > maxChars) {
             event.preventDefault();
             showAlert(`This field cannot contain more than ${maxChars} characters.`);
-        } else if (!textField.value.trim() || (!imageField.files.length && !videoField.files.length)) {
+        } else if (!textField.value.trim() || (!imageField.files.length && !videoField.files.length && !youtubeLinkField.value.trim())) {
             event.preventDefault();
-            showAlert("You need to insert a comment and image or video");
+            showAlert("You must provide text, an image, a video, or a YouTube link.");
         }
     });
 

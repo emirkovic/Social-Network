@@ -7,21 +7,23 @@ from .models import Post
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["text", "image", "video"]
+        fields = ["text", "image", "video", "youtube_link"]
 
     def clean(self):
         cleaned_data = super().clean()
         text = cleaned_data.get("text")
         image = cleaned_data.get("image")
         video = cleaned_data.get("video")
+        youtube_link = cleaned_data.get("youtube_link")
 
         post_text_error = "Post text cannot be empty."
-        upload_error = "You must upload an image or a video."
+
+        upload_error = "You must upload an image or a video or a youtube link."
 
         if not text.strip():
             raise forms.ValidationError(post_text_error)
 
-        if not image and not video:
+        if not image and not video and not youtube_link:
             raise forms.ValidationError(upload_error)
 
         return cleaned_data

@@ -35,6 +35,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     image = models.ImageField(upload_to="posts/images/", blank=True, null=True)
     video = models.FileField(upload_to="posts/videos/", blank=True, null=True)
+    youtube_link = models.URLField(blank=True, default="")
     text = models.TextField(blank=True, default="", validators=[validate_word_count])
     created = models.DateTimeField(default=timezone.now)
     updated = models.DateTimeField(auto_now=True)

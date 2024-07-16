@@ -1,4 +1,4 @@
-{% load static i18n cms_tags sekizai_tags menu_tags %}
+{% load static i18n cms_tags sekizai_tags menu_tags youtube %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -121,11 +121,19 @@
                 <img src="{{ post_detail.image.url }}"
                      alt="Post Image"
                      class="img-fluid post-image" />
-              {% elif post_detail.video %}
+              {% endif %}
+              {% if post_detail.video %}
                 <video controls class="img-fluid mt-3 post-image">
                   <source src="{{ post_detail.video.url }}" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
+              {% endif %}
+              {% if post_detail.youtube_link %}
+                <iframe width="560"
+                        height="315"
+                        src="https://www.youtube.com/embed/{{ post_detail.youtube_link|youtube_id }}"
+                        frameborder="0"
+                        allowfullscreen></iframe>
               {% endif %}
               <div class="details mt-3">
                 <p class="mt-3">{{ post_detail.text }}</p>

@@ -6,6 +6,34 @@ document.addEventListener("DOMContentLoaded", function () {
         alertBox.style.display = "block";
     }
 
+    document.querySelectorAll(".follow-btn, .unfollow-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const userId = this.dataset.userId;
+            const isFollow = this.classList.contains("follow-btn");
+            const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
+            const method = "POST";
+            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const followersCountElement = document.getElementById(`followers-count-${userId}`);
+                    followersCountElement.textContent = data.followers_count;
+                    this.textContent = isFollow ? "Following" : "Follow";
+                    this.classList.toggle("follow-btn");
+                    this.classList.toggle("unfollow-btn");
+                }
+            });
+        });
+    });
+
     var commentForms = document.querySelectorAll(".comment-form");
     commentForms.forEach(function (form) {
         form.addEventListener("submit", function (event) {
@@ -73,6 +101,43 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.total_likes !== undefined) {
                     document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
                     document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
+                }
+            });
+        });
+    });
+
+    document.getElementById("seeAllBtn").addEventListener("click", function () {
+        var suggestionsList = document.getElementById("suggestionsList");
+        if (suggestionsList.style.display === "none" || suggestionsList.style.display === "") {
+            suggestionsList.style.display = "block";
+        } else {
+            suggestionsList.style.display = "none";
+        }
+    });
+
+    document.querySelectorAll(".follow-btn, .unfollow-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const userId = this.dataset.userId;
+            const isFollow = this.classList.contains("follow-btn");
+            const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
+            const method = "POST";
+            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const followersCountElement = document.getElementById(`followers-count-${userId}`);
+                    followersCountElement.textContent = data.followers_count;
+                    this.textContent = isFollow ? "Following" : "Follow";
+                    this.classList.toggle("follow-btn");
+                    this.classList.toggle("unfollow-btn");
                 }
             });
         });

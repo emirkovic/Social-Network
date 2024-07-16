@@ -1,4 +1,3 @@
-/* profile.css */
 body {
     background-color: white;
 }
@@ -118,4 +117,33 @@ body {
     border: 1px solid #f5c6cb;
     border-radius: 4px;
     z-index: 1000;
+}
+
+.unfollow-btn {
+    background: none;
+    border: none;
+    color: #0095f6;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+}
+
+.follow-btn {
+    color: #0095f6;
+    cursor: pointer;
+}
+
+.follow-btn:hover, .unfollow-btn:hover {
+    text-decoration: underline;
+}
+
+#seeAllBtn {
+    cursor: pointer;
+    color: #0095f6;
+    font-weight: bold;
+}
+
+#suggestionsList {
+    display: none;
 }

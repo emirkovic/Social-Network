@@ -159,7 +159,10 @@
                            height="40"
                            alt="User Avatar" />
                     {% endif %}
-                    <strong class="ml-2">{{ post.user.username }}</strong>
+                    <strong class="ml-2">
+                      <a href="{% url 'social:my_profile' post.user.username %}"
+                         class="text-dark">{{ post.user.username }}</a>
+                    </strong>
                   </div>
                   <div class="mt-3">
                     {% if post.image %}
@@ -212,7 +215,10 @@
                         {% endif %}
                         <div class="comment-details ml-2">
                           <p class="mb-1">
-                            <strong>{{ comment.user.username }}</strong> {{ comment.text }}
+                            <strong>
+                              <a href="{% url 'social:my_profile' comment.user.username %}"
+                                 class="text-dark">{{ comment.user.username }}</a>
+                            </strong> {{ comment.text }}
                           </p>
                           <small class="text-muted">{{ comment.created|date:"M d, Y" }}</small>
                         </div>
@@ -269,31 +275,38 @@
               </div>
               <div class="suggestion-header">
                 <small>Suggestions for you</small>
-                <span class="text-primary">See All</span>
+                <span class="text-primary see-all-btn" id="seeAllBtn">See All</span>
               </div>
-              {% for suggestion in suggestions %}
-                <div class="suggestion-item">
-                  {% if suggestion.profile.profile_image %}
-                    <img src="{{ suggestion.profile.profile_image.url }}"
-                         class="rounded-circle"
-                         height="40"
-                         alt="User Avatar" />
-                  {% else %}
-                    <img src="https://via.placeholder.com/150"
-                         class="rounded-circle"
-                         height="40"
-                         alt="User Avatar" />
-                  {% endif %}
-                  <div class="suggestion-info">
-                    <small><strong>{{ suggestion.username }}</strong></small>
-                    <br />
-                    <small>Followed by {{ suggestion.followers.first.username }} +10 more</small>
+              <div id="suggestionsList" class="suggestions-list">
+                {% for suggestion in suggestions %}
+                  <div class="suggestion-item" id="suggestion-{{ suggestion.id }}">
+                    {% if suggestion.profile.profile_image %}
+                      <img src="{{ suggestion.profile.profile_image.url }}"
+                           class="rounded-circle"
+                           height="40"
+                           alt="User Avatar" />
+                    {% else %}
+                      <img src="https://via.placeholder.com/150"
+                           class="rounded-circle"
+                           height="40"
+                           alt="User Avatar" />
+                    {% endif %}
+                    <div class="suggestion-info">
+                      <small><strong><a href="{% url 'social:my_profile' suggestion.username %}"
+   class="text-dark">{{ suggestion.username }}</a></strong></small>
+                      <br />
+                      <small>Followed by <span id="followers-count-{{ suggestion.id }}">{{ suggestion.followers.count }}</span> others</small>
+                    </div>
+                    <div class="follow-text">
+                      {% if suggestion in user.profile.following.all %}
+                        <button class="btn btn-link unfollow-btn" data-user-id="{{ suggestion.id }}">Following</button>
+                      {% else %}
+                        <button class="btn btn-link follow-btn" data-user-id="{{ suggestion.id }}">Follow</button>
+                      {% endif %}
+                    </div>
                   </div>
-                  <div class="follow-text">
-                    <small>Follow</small>
-                  </div>
-                </div>
-              {% endfor %}
+                {% endfor %}
+              </div>
             </section>
           </div>
         </div>

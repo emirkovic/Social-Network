@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 
 User = get_user_model()
@@ -33,6 +35,14 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    @property
+    def followers_count(self):
+        return self.user.followers.count()
+
+    @property
+    def following_count(self):
+        return self.following.count()
 
 
 class Post(models.Model):
@@ -68,3 +78,14 @@ class Like(models.Model):
 
     def __str__(self):
         return f"Like by {self.user.username} on {self.post.id}"
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()

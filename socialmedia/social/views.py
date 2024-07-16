@@ -27,7 +27,6 @@ def index(request):
         post_form = PostForm()
 
     latest_post_list = Post.objects.filter(deleted=False).order_by("-created")
-
     posts_with_comments = []
     for post in latest_post_list:
         comments = post.comments.filter(deleted=False).order_by("-created")[:2]
@@ -37,7 +36,6 @@ def index(request):
         posts_with_comments.append((post, comments, last_liked_user))
 
     suggestions = User.objects.exclude(id=request.user.id)[:5]
-
     context = {
         "posts_with_comments": posts_with_comments,
         "post_form": post_form,
@@ -47,6 +45,44 @@ def index(request):
     return render(request, "pages/profile.html", context)
 
 
+@login_required
+def my_profile(request, username):
+    user = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=user, image__isnull=False, deleted=False).order_by(
+        "-created",
+    )
+    followers_count = user.followers.count()
+    following_count = user.profile.following.count()
+    context = {
+        "user": user,
+        "posts": posts,
+        "followers_count": followers_count,
+        "following_count": following_count,
+    }
+    return render(request, "pages/my_profile.html", context)
+
+
+@login_required
+@require_POST
+def follow(request, user_id):
+    user_to_follow = get_object_or_404(User, id=user_id)
+    request.user.profile.following.add(user_to_follow)
+    return JsonResponse(
+        {"success": True, "followers_count": user_to_follow.followers.count()},
+    )
+
+
+@login_required
+@require_POST
+def unfollow(request, user_id):
+    user_to_unfollow = get_object_or_404(User, id=user_id)
+    request.user.profile.following.remove(user_to_unfollow)
+    return JsonResponse(
+        {"success": True, "followers_count": user_to_unfollow.followers.count()},
+    )
+
+
+@login_required
 def detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id, deleted=False)
     if request.method == "POST":
@@ -101,30 +137,3 @@ def like_post(request, post_id):
     return JsonResponse(
         {"total_likes": total_likes, "last_liked_user": last_liked_user},
     )
-
-
-@login_required
-def my_profile(request, username):
-    user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(user=user, image__isnull=False, deleted=False).order_by(
-        "-created",
-    )
-    context = {
-        "user": user,
-        "posts": posts,
-    }
-    return render(request, "pages/my_profile.html", context)
-
-
-@login_required
-def follow(request, user_id):
-    user_to_follow = get_object_or_404(User, id=user_id)
-    request.user.profile.following.add(user_to_follow)
-    return redirect("social:my_profile", username=user_to_follow.username)
-
-
-@login_required
-def unfollow(request, user_id):
-    user_to_unfollow = get_object_or_404(User, id=user_id)
-    request.user.profile.following.remove(user_to_unfollow)
-    return redirect("social:my_profile", username=user_to_unfollow.username)

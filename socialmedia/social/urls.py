@@ -1,3 +1,4 @@
+from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from .views import detail
@@ -12,4 +13,5 @@ urlpatterns = [
     path("post/<int:post_id>/", detail, name="detail"),
     path("post/<int:post_id>/like/", like_post, name="like_post"),
     path("settings/", settings_view, name="settings"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]

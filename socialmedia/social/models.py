@@ -26,6 +26,8 @@ class UserProfile(models.Model):
     profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
     bio = models.TextField(blank=True, default="")
     location = models.CharField(max_length=255, blank=True, default="")
+    first_name = models.CharField(max_length=30, blank=True, default="")
+    last_name = models.CharField(max_length=30, blank=True, default="")
     following = models.ManyToManyField(User, related_name="followers", blank=True)
     active = models.BooleanField(default=True)
 

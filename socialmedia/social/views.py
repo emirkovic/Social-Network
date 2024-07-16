@@ -10,9 +10,11 @@ from .forms import PostForm
 from .forms import UserProfileForm
 from .models import Like
 from .models import Post
+from .models import User
 from .models import UserProfile
 
 
+@login_required
 def index(request):
     if request.method == "POST":
         post_form = PostForm(request.POST, request.FILES)
@@ -34,9 +36,13 @@ def index(request):
         )
         posts_with_comments.append((post, comments, last_liked_user))
 
+    suggestions = User.objects.exclude(id=request.user.id)[:5]
+
     context = {
         "posts_with_comments": posts_with_comments,
         "post_form": post_form,
+        "suggestions": suggestions,
+        "user": request.user,
     }
     return render(request, "pages/profile.html", context)
 

@@ -6,6 +6,7 @@ from .views import follow
 from .views import index
 from .views import like_post
 from .views import my_profile
+from .views import search_users
 from .views import settings_view
 from .views import unfollow
 
@@ -20,4 +21,5 @@ urlpatterns = [
     path("profile/<str:username>/", my_profile, name="my_profile"),
     path("follow/<int:user_id>/", follow, name="follow"),
     path("unfollow/<int:user_id>/", unfollow, name="unfollow"),
+    path("search/", search_users, name="search_users"),
 ]

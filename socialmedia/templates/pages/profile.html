@@ -42,15 +42,21 @@
                 <a class="navbar-brand" href="{% url 'social:index' %}">SocialMediaApp</a>
               </div>
               <div class="col-md-4">
-                <form class="d-flex input-group w-auto">
+                <form class="d-flex input-group w-auto"
+                      method="get"
+                      action="{% url 'social:search_users' %}"
+                      id="searchForm">
                   <input type="search"
                          class="form-control rounded"
                          placeholder="Search"
                          aria-label="Search"
-                         aria-describedby="search-addon" />
-                  <span class="input-group-text border-0" id="search-addon">
+                         aria-describedby="search-addon"
+                         name="q"
+                         id="searchInput"
+                         required />
+                  <button type="submit" class="input-group-text border-0" id="search-addon">
                     <i class="fas fa-search"></i>
-                  </span>
+                  </button>
                 </form>
               </div>
               <div class="col-md-2">

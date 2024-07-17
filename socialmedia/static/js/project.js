@@ -137,4 +137,45 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    const searchInput = document.getElementById('searchInput');
+    const searchResultsDropdown = document.createElement('div');
+    searchResultsDropdown.id = 'searchResultsDropdown';
+    searchResultsDropdown.className = 'dropdown-menu';
+    searchInput.parentNode.appendChild(searchResultsDropdown);
+
+    searchInput.addEventListener('input', function () {
+        const query = searchInput.value;
+        if (query.length > 2) {
+            fetch(`/social/search/?q=${query}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                searchResultsDropdown.innerHTML = '';
+                if (data.users.length > 0) {
+                    data.users.forEach(user => {
+                        const userItem = document.createElement('a');
+                        userItem.href = `/social/profile/${user.username}/`;
+                        userItem.className = 'dropdown-item';
+                        userItem.textContent = user.username;
+                        searchResultsDropdown.appendChild(userItem);
+                    });
+                    searchResultsDropdown.style.display = 'block';
+                } else {
+                    searchResultsDropdown.style.display = 'none';
+                }
+            });
+        } else {
+            searchResultsDropdown.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
+            searchResultsDropdown.style.display = 'none';
+        }
+    });
 });

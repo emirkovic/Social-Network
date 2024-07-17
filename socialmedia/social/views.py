@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -136,4 +137,24 @@ def like_post(request, post_id):
     last_liked_user = post.likes.last().user.username if total_likes > 0 else None
     return JsonResponse(
         {"total_likes": total_likes, "last_liked_user": last_liked_user},
+    )
+
+
+@login_required
+def search_users(request):
+    query = request.GET.get("q")
+    users = []
+    if query:
+        users = User.objects.filter(
+            Q(username__icontains=query)
+            | Q(profile__first_name__icontains=query)
+            | Q(profile__last_name__icontains=query),
+        )
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        user_list = [{"username": user.username} for user in users]
+        return JsonResponse({"users": user_list})
+    return render(
+        request,
+        "pages/search_results.html",
+        {"users": users, "query": query},
     )

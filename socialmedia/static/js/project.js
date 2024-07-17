@@ -44,6 +44,23 @@ document.addEventListener("DOMContentLoaded", function () {
                         button.classList.remove("btn-secondary");
                         button.classList.add("btn-primary");
                     }
+                    const suggestionsList = document.getElementById("suggestionsList");
+                    suggestionsList.innerHTML = "";
+                    data.suggestions.forEach(suggestion => {
+                        const suggestionItem = `
+                            <div class="suggestion-item" id="suggestion-${suggestion.id}">
+                                <img src="https://via.placeholder.com/150" class="rounded-circle" height="40" alt="User Avatar" />
+                                <div class="suggestion-info">
+                                    <small><strong><a href="/social/profile/${suggestion.username}/" class="text-dark">${suggestion.username}</a></strong></small>
+                                    <br />
+                                    <small>Followed by 0 others</small>
+                                </div>
+                                <div class="follow-text">
+                                    <button class="btn btn-primary follow-btn" data-user-id="${suggestion.id}">Follow</button>
+                                </div>
+                            </div>`;
+                        suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
+                    });
                 }
             });
         });

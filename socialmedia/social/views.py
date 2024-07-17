@@ -27,7 +27,11 @@ def index(request):
     else:
         post_form = PostForm()
 
-    latest_post_list = Post.objects.filter(deleted=False).order_by("-created")
+    following_users = request.user.profile.following.all()
+    latest_post_list = Post.objects.filter(
+        user__in=following_users,
+        deleted=False,
+    ).order_by("-created")
     posts_with_comments = []
     for post in latest_post_list:
         comments = post.comments.filter(deleted=False).order_by("-created")[:2]
@@ -36,7 +40,11 @@ def index(request):
         )
         posts_with_comments.append((post, comments, last_liked_user))
 
-    suggestions = User.objects.exclude(id=request.user.id)[:5]
+    suggestions = (
+        User.objects.exclude(id=request.user.id)
+        .exclude(id__in=following_users)
+        .order_by("?")[:5]
+    )
     context = {
         "posts_with_comments": posts_with_comments,
         "post_form": post_form,
@@ -68,8 +76,20 @@ def my_profile(request, username):
 def follow(request, user_id):
     user_to_follow = get_object_or_404(User, id=user_id)
     request.user.profile.following.add(user_to_follow)
+    suggestions = (
+        User.objects.exclude(id=request.user.id)
+        .exclude(id__in=request.user.profile.following.all())
+        .order_by("?")[:5]
+    )
+    suggestion_list = [
+        {"id": user.id, "username": user.username} for user in suggestions
+    ]
     return JsonResponse(
-        {"success": True, "followers_count": user_to_follow.followers.count()},
+        {
+            "success": True,
+            "followers_count": user_to_follow.followers.count(),
+            "suggestions": suggestion_list,
+        },
     )
 
 
@@ -78,8 +98,20 @@ def follow(request, user_id):
 def unfollow(request, user_id):
     user_to_unfollow = get_object_or_404(User, id=user_id)
     request.user.profile.following.remove(user_to_unfollow)
+    suggestions = (
+        User.objects.exclude(id=request.user.id)
+        .exclude(id__in=request.user.profile.following.all())
+        .order_by("?")[:5]
+    )
+    suggestion_list = [
+        {"id": user.id, "username": user.username} for user in suggestions
+    ]
     return JsonResponse(
-        {"success": True, "followers_count": user_to_unfollow.followers.count()},
+        {
+            "success": True,
+            "followers_count": user_to_unfollow.followers.count(),
+            "suggestions": suggestion_list,
+        },
     )
 
 

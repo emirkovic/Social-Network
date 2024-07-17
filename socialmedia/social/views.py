@@ -85,11 +85,50 @@ def follow(request, user_id):
     suggestion_list = [
         {"id": user.id, "username": user.username} for user in suggestions
     ]
+
+    followed_user_posts = Post.objects.filter(
+        user=user_to_follow,
+        deleted=False,
+    ).order_by("-created")
+    posts = []
+    for post in followed_user_posts:
+        comments = post.comments.filter(deleted=False).order_by("-created")[:2]
+        last_liked_user = (
+            post.likes.last().user.username if post.likes.count() > 0 else ""
+        )
+        posts.append(
+            {
+                "id": post.id,
+                "user": post.user.username,
+                "profile_image": post.user.profile.profile_image.url
+                if post.user.profile.profile_image
+                else "https://via.placeholder.com/150",
+                "text": post.text,
+                "image": post.image.url if post.image else None,
+                "video": post.video.url if post.video else None,
+                "youtube_link": post.youtube_link,
+                "likes_count": post.likes.count(),
+                "last_liked_user": last_liked_user,
+                "comments": [
+                    {
+                        "user": comment.user.username,
+                        "profile_image": comment.user.profile.profile_image.url
+                        if comment.user.profile.profile_image
+                        else "https://via.placeholder.com/150",
+                        "text": comment.text,
+                        "created": comment.created.strftime("%b %d, %Y"),
+                    }
+                    for comment in comments
+                ],
+            },
+        )
+
     return JsonResponse(
         {
             "success": True,
             "followers_count": user_to_follow.followers.count(),
             "suggestions": suggestion_list,
+            "posts": posts,
         },
     )
 

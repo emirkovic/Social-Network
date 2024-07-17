@@ -30,27 +30,19 @@
         </div>
         <div class="profile-stats">
           <span>{{ posts.count }} Posts</span>
-          <span id="followers-count">{{ followers_count }} Followers</span>
-          <span id="following-count">{{ following_count }} Following</span>
+          <span id="followers-count-{{ user.id }}">{{ followers_count }} Followers</span>
+          <span id="following-count-{{ user.id }}">{{ following_count }} Following</span>
         </div>
       </div>
       <div class="profile-actions">
         <a href="{% url 'social:index' %}" class="btn btn-primary">Return to Social Media</a>
         {% if user != request.user %}
+          {% csrf_token %}
           {% if user in request.user.profile.following.all %}
-            <form action="{% url 'social:unfollow' user.id %}"
-                  method="post"
-                  class="inline-form">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-secondary">Unfollow</button>
-            </form>
+            <button class="btn btn-secondary follow-btn following"
+                    data-user-id="{{ user.id }}">Unfollow</button>
           {% else %}
-            <form action="{% url 'social:follow' user.id %}"
-                  method="post"
-                  class="inline-form">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-primary">Follow</button>
-            </form>
+            <button class="btn btn-primary follow-btn" data-user-id="{{ user.id }}">Follow</button>
           {% endif %}
         {% endif %}
       </div>

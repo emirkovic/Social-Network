@@ -119,23 +119,29 @@ body {
     z-index: 1000;
 }
 
-.unfollow-btn {
-    background: none;
-    border: none;
-    color: #0095f6;
+.follow-btn, .unfollow-btn {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-    margin: 0;
-}
-
-.follow-btn {
-    color: #0095f6;
-    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 .follow-btn:hover, .unfollow-btn:hover {
-    text-decoration: underline;
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.following {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.following:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
 }
 
 #seeAllBtn {

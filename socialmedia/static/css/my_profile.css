@@ -77,10 +77,27 @@ body {
     border: none;
     border-radius: 5px;
     margin: 0 10px;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 .profile-actions .btn-secondary {
     background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.profile-actions .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.profile-actions .btn:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.profile-actions .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
 }
 
 .profile-posts {
@@ -140,4 +157,29 @@ body {
 
 .inline-form {
     display: inline;
+}
+
+.follow-btn, .unfollow-btn {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.follow-btn:hover, .unfollow-btn:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.following {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.following:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
 }

@@ -299,9 +299,10 @@
                     </div>
                     <div class="follow-text">
                       {% if suggestion in user.profile.following.all %}
-                        <button class="btn btn-link unfollow-btn" data-user-id="{{ suggestion.id }}">Following</button>
+                        <button class="btn btn-secondary follow-btn following"
+                                data-user-id="{{ suggestion.id }}">Following</button>
                       {% else %}
-                        <button class="btn btn-link follow-btn" data-user-id="{{ suggestion.id }}">Follow</button>
+                        <button class="btn btn-primary follow-btn" data-user-id="{{ suggestion.id }}">Follow</button>
                       {% endif %}
                     </div>
                   </div>

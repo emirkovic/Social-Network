@@ -29,9 +29,10 @@ def index(request):
 
     following_users = request.user.profile.following.all()
     latest_post_list = Post.objects.filter(
-        user__in=following_users,
+        Q(user__in=following_users) | Q(user=request.user),
         deleted=False,
     ).order_by("-created")
+
     posts_with_comments = []
     for post in latest_post_list:
         comments = post.comments.filter(deleted=False).order_by("-created")[:2]

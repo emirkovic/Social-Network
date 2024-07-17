@@ -178,4 +178,29 @@ document.addEventListener("DOMContentLoaded", function () {
             searchResultsDropdown.style.display = 'none';
         }
     });
+
+    document.querySelectorAll(".delete-post").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            const postId = this.dataset.postId;
+            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+            if (confirm("Are you sure you want to delete this post?")) {
+                fetch(`/social/delete_post/${postId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`post-${postId}`).remove();
+                    } else {
+                        alert("Failed to delete the post.");
+                    }
+                });
+            }
+        });
+    });
 });

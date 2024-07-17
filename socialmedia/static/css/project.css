@@ -50,3 +50,12 @@
   text-decoration: none;
   background-color: #f8f9fa;
 }
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}

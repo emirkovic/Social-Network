@@ -1,6 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from .views import delete_post
 from .views import detail
 from .views import follow
 from .views import index
@@ -22,4 +23,5 @@ urlpatterns = [
     path("follow/<int:user_id>/", follow, name="follow"),
     path("unfollow/<int:user_id>/", unfollow, name="unfollow"),
     path("search/", search_users, name="search_users"),
+    path("delete_post/<int:post_id>/", delete_post, name="delete_post"),
 ]

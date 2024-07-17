@@ -158,3 +158,11 @@ def search_users(request):
         "pages/search_results.html",
         {"users": users, "query": query},
     )
+
+
+@login_required
+@require_POST
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id, user=request.user)
+    post.delete()
+    return JsonResponse({"success": True})

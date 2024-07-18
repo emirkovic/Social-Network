@@ -1,4 +1,6 @@
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
+from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -208,20 +210,37 @@ def settings_view(request):
 @login_required
 @require_POST
 def like_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id, deleted=False)
-    like, created = Like.objects.get_or_create(user=request.user, post=post)
-    if not created:
-        like.delete()
-    total_likes = post.likes.count()
-    last_liked_user = post.likes.last().user.username if total_likes > 0 else None
-    user_liked = created or Like.objects.filter(user=request.user, post=post).exists()
-    return JsonResponse(
-        {
-            "total_likes": total_likes,
-            "last_liked_user": last_liked_user,
-            "user_liked": user_liked,
-        },
-    )
+    post = get_object_or_404(Post, id=post_id)
+    user = request.user
+
+    try:
+        with transaction.atomic():
+            existing_like = (
+                Like.objects.select_for_update().filter(user=user, post=post).first()
+            )
+            if existing_like:
+                existing_like.delete()
+                user_liked = False
+            else:
+                Like.objects.create(user=user, post=post)
+                user_liked = True
+
+            total_likes = post.likes.count()
+            last_liked_user = (
+                post.likes.last().user.username if post.likes.exists() else ""
+            )
+
+            response_data = {
+                "total_likes": total_likes,
+                "user_liked": user_liked,
+                "last_liked_user": last_liked_user,
+            }
+            return JsonResponse(response_data)
+    except IntegrityError:
+        return JsonResponse(
+            {"error": "Like operation failed due to a race condition."},
+            status=400,
+        )
 
 
 @login_required

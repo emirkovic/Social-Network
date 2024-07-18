@@ -1,4 +1,37 @@
 document.addEventListener("DOMContentLoaded", function () {
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    function setupCSRFToken() {
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    }
+
+    setupCSRFToken();
+
     function showAlert(message) {
         var alertBox = document.getElementById("customAlert");
         var alertMessage = document.getElementById("alertMessage");
@@ -63,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </a>
                         </div>
                         <small class="text-muted">
-                            Liked by <strong id="last-liked-${post.id}">${post.last_liked_user}</strong> and <strong id="likes-count-${post.id}">${post.likes_count}</strong> others
+                            Liked by <strong id="last-liked-${post.id}">${post.last_liked_user || ''}</strong> and <strong id="likes-count-${post.id}">${post.likes_count}</strong> others
                         </small>
                     </div>
                     <div id="comments-${post.id}" class="comments mt-3">
@@ -110,7 +143,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.success) {
                 updateFollowButtons(userId, isFollow);
                 removeSuggestion(userId);
-                updateSuggestions(data.suggestions);
+                if (document.getElementById("suggestionsList")) {
+                    updateSuggestions(data.suggestions);
+                }
                 updateFollowersCount(userId, data.followers_count);
                 if (isFollow) {
                     fetchNewPosts(userId);
@@ -129,7 +164,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 const postsContainer = document.querySelector(".profile-content");
                 data.posts.forEach(post => {
                     const postHtml = createPostHtml(post);
-                    postsContainer.insertAdjacentHTML("afterbegin", postHtml);
+                    if (postsContainer) {
+                        postsContainer.insertAdjacentHTML("afterbegin", postHtml);
+                    }
                 });
                 addEventListenersToNewPosts();
             }
@@ -166,20 +203,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function handleLikeButtonClick(button) {
         const postId = button.dataset.postId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+        button.disabled = true;
+
         fetch(`/social/post/${postId}/like/`, {
             method: "POST",
             headers: {
-                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                "X-CSRFToken": csrfToken,
                 "Content-Type": "application/json"
             },
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.total_likes !== undefined) {
-                document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
-                document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-                button.classList.toggle("liked", data.user_liked);
+                const likesCountElement = document.getElementById(`likes-count-${postId}`);
+                const lastLikedElement = document.getElementById(`last-liked-${postId}`);
+                const likeButton = button;
+
+                if (likesCountElement && likeButton) {
+                    likesCountElement.textContent = data.total_likes;
+                    lastLikedElement.textContent = data.last_liked_user || '';
+                    likeButton.classList.toggle("liked", data.user_liked);
+                    const icon = likeButton.querySelector('i');
+                    icon.classList.toggle("fas", data.user_liked);
+                    icon.classList.toggle("far", !data.user_liked);
+                }
             }
+        })
+        .catch(error => console.error('Error handling like/unlike:', error))
+        .finally(() => {
+            button.disabled = false;
         });
     }
 
@@ -285,54 +344,56 @@ document.addEventListener("DOMContentLoaded", function () {
     if (seeAllBtn) {
         seeAllBtn.addEventListener("click", function () {
             var suggestionsList = document.getElementById("suggestionsList");
-            if (suggestionsList.style.display === "none" || suggestionsList.style.display === "") {
+            if (suggestionsList && (suggestionsList.style.display === "none" || suggestionsList.style.display === "")) {
                 suggestionsList.style.display = "block";
-            } else {
+            } else if (suggestionsList) {
                 suggestionsList.style.display = "none";
             }
         });
     }
 
     const searchInput = document.getElementById('searchInput');
-    const searchResultsDropdown = document.createElement('div');
-    searchResultsDropdown.id = 'searchResultsDropdown';
-    searchResultsDropdown.className = 'dropdown-menu';
-    searchInput.parentNode.appendChild(searchResultsDropdown);
+    if (searchInput) {
+        const searchResultsDropdown = document.createElement('div');
+        searchResultsDropdown.id = 'searchResultsDropdown';
+        searchResultsDropdown.className = 'dropdown-menu';
+        searchInput.parentNode.appendChild(searchResultsDropdown);
 
-    searchInput.addEventListener('input', function () {
-        const query = searchInput.value;
-        if (query.length > 2) {
-            fetch(`/social/search/?q=${query}`, {
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                searchResultsDropdown.innerHTML = '';
-                if (data.users.length > 0) {
-                    data.users.forEach(user => {
-                        const userItem = document.createElement('a');
-                        userItem.href = `/social/profile/${user.username}/`;
-                        userItem.className = 'dropdown-item';
-                        userItem.textContent = user.username;
-                        searchResultsDropdown.appendChild(userItem);
-                    });
-                    searchResultsDropdown.style.display = 'block';
-                } else {
-                    searchResultsDropdown.style.display = 'none';
-                }
-            });
-        } else {
-            searchResultsDropdown.style.display = 'none';
-        }
-    });
+        searchInput.addEventListener('input', function () {
+            const query = searchInput.value;
+            if (query.length > 2) {
+                fetch(`/social/search/?q=${query}`, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    searchResultsDropdown.innerHTML = '';
+                    if (data.users.length > 0) {
+                        data.users.forEach(user => {
+                            const userItem = document.createElement('a');
+                            userItem.href = `/social/profile/${user.username}/`;
+                            userItem.className = 'dropdown-item';
+                            userItem.textContent = user.username;
+                            searchResultsDropdown.appendChild(userItem);
+                        });
+                        searchResultsDropdown.style.display = 'block';
+                    } else {
+                        searchResultsDropdown.style.display = 'none';
+                    }
+                });
+            } else {
+                searchResultsDropdown.style.display = 'none';
+            }
+        });
 
-    document.addEventListener('click', function (event) {
-        if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
-            searchResultsDropdown.style.display = 'none';
-        }
-    });
+        document.addEventListener('click', function (event) {
+            if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
+                searchResultsDropdown.style.display = 'none';
+            }
+        });
+    }
 
     document.querySelectorAll(".delete-post").forEach(button => {
         button.addEventListener("click", function (event) {

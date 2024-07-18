@@ -79,21 +79,31 @@
                        role="button"
                        data-mdb-toggle="dropdown"
                        aria-expanded="false">
-                      <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img (31).webp"
-                           class="rounded-circle"
-                           height="22"
-                           loading="lazy"
-                           alt="User Avatar" />
+                      {% if request.user.profile.profile_image %}
+                        <img src="{{ request.user.profile.profile_image.url }}"
+                             class="rounded-circle"
+                             height="22"
+                             loading="lazy"
+                             alt="User Avatar" />
+                      {% else %}
+                        <img src="https://via.placeholder.com/150"
+                             class="rounded-circle"
+                             height="22"
+                             loading="lazy"
+                             alt="User Avatar" />
+                      {% endif %}
+                      <span class="ms-2">{{ user.username }}</span>
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                       <li>
-                        <a class="dropdown-item" href="#">My profile</a>
+                        <a class="dropdown-item"
+                           href="{% url 'social:my_profile' request.user.username %}">My profile</a>
                       </li>
                       <li>
-                        <a class="dropdown-item" href="#">Settings</a>
+                        <a class="dropdown-item" href="{% url 'social:settings' %}">Settings</a>
                       </li>
                       <li>
-                        <a class="dropdown-item" href="#">Logout</a>
+                        <a class="dropdown-item" href="{% url 'social:logout' %}">Logout</a>
                       </li>
                     </ul>
                   </li>
@@ -206,6 +216,7 @@
       <button onclick="document.getElementById('customAlert').style.display='none'">OK</button>
     </div>
     <!-- Optional JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript"
             src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
     <script src="{% static 'js/project.js' %}"></script>

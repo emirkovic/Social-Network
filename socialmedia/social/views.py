@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from .forms import CommentForm
 from .forms import PostForm
 from .forms import UserProfileForm
+from .models import Comment
 from .models import Like
 from .models import Post
 from .models import User
@@ -153,6 +154,7 @@ def fetch_new_posts(request, user_id):
             else "",
             "comments": [
                 {
+                    "id": comment.id,
                     "username": comment.user.username,
                     "text": comment.text,
                     "created": comment.created.strftime("%b %d, %Y"),
@@ -268,4 +270,12 @@ def search_users(request):
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, user=request.user)
     post.delete()
+    return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id, user=request.user)
+    comment.delete()
     return JsonResponse({"success": True})

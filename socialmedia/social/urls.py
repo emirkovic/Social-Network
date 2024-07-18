@@ -1,6 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from .views import delete_comment
 from .views import delete_post
 from .views import detail
 from .views import fetch_new_posts
@@ -26,4 +27,5 @@ urlpatterns = [
     path("search/", search_users, name="search_users"),
     path("delete_post/<int:post_id>/", delete_post, name="delete_post"),
     path("fetch_new_posts/<int:user_id>/", fetch_new_posts, name="fetch_new_posts"),
+    path("delete_comment/<int:comment_id>/", delete_comment, name="delete_comment"),
 ]

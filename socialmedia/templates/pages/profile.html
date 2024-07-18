@@ -19,6 +19,9 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.css" />
     <link rel="stylesheet" href="{% static 'css/profile.css' %}" />
+    <script>
+      var current_user = "{{ user.username }}";
+    </script>
   </head>
   <body>
     {% cms_toolbar %}
@@ -125,7 +128,7 @@
       <div class="container my-5">
         <div class="row">
           <div class="col-lg-8">
-            <div class="profile-content bg-white p-4 rounded shadow-sm">
+            <div class="profile-content bg-white p-4 rounded shadow-sm profile-posts">
               <form id="postForm" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {{ post_form.non_field_errors }}

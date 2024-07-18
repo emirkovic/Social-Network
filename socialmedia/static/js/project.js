@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     <div id="comments-${post.id}" class="comments mt-3">
                         ${post.comments.map(comment => `
-                            <div class="comment mb-2 d-flex">
+                            <div class="comment mb-2 d-flex" id="comment-${comment.id}">
                                 <img src="https://via.placeholder.com/150" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
                                 <div class="comment-details ml-2">
                                     <p class="mb-1">
@@ -77,6 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         </strong> ${comment.text}
                                     </p>
                                     <small class="text-muted">${comment.created}</small>
+                                    ${comment.user == current_user ? `<button class="btn btn-danger btn-sm delete-comment" data-comment-id="${comment.id}">Delete</button>` : ''}
                                 </div>
                             </div>
                         `).join('')}
@@ -125,15 +126,17 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(`/social/fetch_new_posts/${userId}/`)
         .then(response => response.json())
         .then(data => {
+            console.log('Fetched new posts:', data);
             if (data.posts && data.posts.length > 0) {
-                const postsContainer = document.querySelector(".profile-content");
+                const postsContainer = document.querySelector(".profile-posts");
                 data.posts.forEach(post => {
                     const postHtml = createPostHtml(post);
                     postsContainer.insertAdjacentHTML("afterbegin", postHtml);
                 });
                 addEventListenersToNewPosts();
             }
-        });
+        })
+        .catch(error => console.error('Error fetching new posts:', error));
     }
 
     function addEventListenersToNewPosts() {
@@ -162,6 +165,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
         });
+
+        document.querySelectorAll(".delete-comment").forEach(button => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                handleDeleteComment(this);
+            });
+        });
+
+        document.querySelectorAll(".delete-post").forEach(button => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                handleDeletePost(this);
+            });
+        });
     }
 
     function handleLikeButtonClick(button) {
@@ -181,6 +198,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 button.classList.toggle("liked", data.user_liked);
             }
         });
+    }
+
+    function handleDeleteComment(button) {
+        const commentId = button.dataset.commentId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        if (confirm("Are you sure you want to delete this comment?")) {
+            fetch(`/social/delete_comment/${commentId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`comment-${commentId}`).remove();
+                } else {
+                    alert("Failed to delete the comment.");
+                }
+            });
+        }
+    }
+
+    function handleDeletePost(button) {
+        const postId = button.dataset.postId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        if (confirm("Are you sure you want to delete this post?")) {
+            fetch(`/social/delete_post/${postId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`post-${postId}`).remove();
+                } else {
+                    alert("Failed to delete the post.");
+                }
+            });
+        }
     }
 
     function updateSuggestions(suggestions) {
@@ -242,6 +303,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault();
                 showAlert("You need to insert a comment");
             }
+        });
+    });
+
+    document.querySelectorAll(".delete-comment").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            handleDeleteComment(this);
+        });
+    });
+
+    document.querySelectorAll(".delete-post").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            handleDeletePost(this);
         });
     });
 

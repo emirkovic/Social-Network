@@ -16,6 +16,10 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ["text", "image", "video", "youtube_link"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["text"].widget.attrs.update({"rows": 1, "cols": 30})
+
     def clean(self):
         cleaned_data = super().clean()
         text = cleaned_data.get("text")

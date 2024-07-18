@@ -33,13 +33,14 @@ def index(request):
         deleted=False,
     ).order_by("-created")
 
-    posts_with_comments = []
-    for post in latest_post_list:
-        comments = post.comments.filter(deleted=False).order_by("-created")[:2]
-        last_liked_user = (
-            post.likes.last().user.username if post.likes.count() > 0 else ""
+    posts_with_comments = [
+        (
+            post,
+            post.comments.filter(deleted=False).order_by("-created")[:2],
+            post.likes.last().user.username if post.likes.count() > 0 else "",
         )
-        posts_with_comments.append((post, comments, last_liked_user))
+        for post in latest_post_list
+    ]
 
     suggestions = (
         User.objects.exclude(id=request.user.id)
@@ -77,58 +78,25 @@ def my_profile(request, username):
 def follow(request, user_id):
     user_to_follow = get_object_or_404(User, id=user_id)
     request.user.profile.following.add(user_to_follow)
+    followers_count = user_to_follow.followers.count()
     suggestions = (
         User.objects.exclude(id=request.user.id)
         .exclude(id__in=request.user.profile.following.all())
         .order_by("?")[:5]
     )
     suggestion_list = [
-        {"id": user.id, "username": user.username} for user in suggestions
+        {
+            "id": user.id,
+            "username": user.username,
+            "followers_count": user.followers.count(),
+        }
+        for user in suggestions
     ]
-
-    followed_user_posts = Post.objects.filter(
-        user=user_to_follow,
-        deleted=False,
-    ).order_by("-created")
-    posts = []
-    for post in followed_user_posts:
-        comments = post.comments.filter(deleted=False).order_by("-created")[:2]
-        last_liked_user = (
-            post.likes.last().user.username if post.likes.count() > 0 else ""
-        )
-        posts.append(
-            {
-                "id": post.id,
-                "user": post.user.username,
-                "profile_image": post.user.profile.profile_image.url
-                if post.user.profile.profile_image
-                else "https://via.placeholder.com/150",
-                "text": post.text,
-                "image": post.image.url if post.image else None,
-                "video": post.video.url if post.video else None,
-                "youtube_link": post.youtube_link,
-                "likes_count": post.likes.count(),
-                "last_liked_user": last_liked_user,
-                "comments": [
-                    {
-                        "user": comment.user.username,
-                        "profile_image": comment.user.profile.profile_image.url
-                        if comment.user.profile.profile_image
-                        else "https://via.placeholder.com/150",
-                        "text": comment.text,
-                        "created": comment.created.strftime("%b %d, %Y"),
-                    }
-                    for comment in comments
-                ],
-            },
-        )
-
     return JsonResponse(
         {
             "success": True,
-            "followers_count": user_to_follow.followers.count(),
+            "followers_count": followers_count,
             "suggestions": suggestion_list,
-            "posts": posts,
         },
     )
 
@@ -138,21 +106,62 @@ def follow(request, user_id):
 def unfollow(request, user_id):
     user_to_unfollow = get_object_or_404(User, id=user_id)
     request.user.profile.following.remove(user_to_unfollow)
+    followers_count = user_to_unfollow.followers.count()
     suggestions = (
         User.objects.exclude(id=request.user.id)
         .exclude(id__in=request.user.profile.following.all())
         .order_by("?")[:5]
     )
     suggestion_list = [
-        {"id": user.id, "username": user.username} for user in suggestions
+        {
+            "id": user.id,
+            "username": user.username,
+            "followers_count": user.followers.count(),
+        }
+        for user in suggestions
     ]
     return JsonResponse(
         {
             "success": True,
-            "followers_count": user_to_unfollow.followers.count(),
+            "followers_count": followers_count,
             "suggestions": suggestion_list,
         },
     )
+
+
+@login_required
+def fetch_new_posts(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    posts = Post.objects.filter(user=user, deleted=False).order_by("-created")
+    posts_data = [
+        {
+            "id": post.id,
+            "username": post.user.username,
+            "profile_image": post.user.profile.profile_image.url
+            if post.user.profile.profile_image
+            else "https://via.placeholder.com/150",
+            "text": post.text,
+            "image": post.image.url if post.image else "",
+            "video": post.video.url if post.video else "",
+            "youtube_link": post.youtube_link,
+            "created": post.created.strftime("%b %d, %Y"),
+            "likes_count": post.likes.count(),
+            "last_liked_user": post.likes.last().user.username
+            if post.likes.count() > 0
+            else "",
+            "comments": [
+                {
+                    "username": comment.user.username,
+                    "text": comment.text,
+                    "created": comment.created.strftime("%b %d, %Y"),
+                }
+                for comment in post.comments.filter(deleted=False)
+            ],
+        }
+        for post in posts
+    ]
+
+    return JsonResponse({"posts": posts_data})
 
 
 @login_required
@@ -192,9 +201,7 @@ def settings_view(request):
     else:
         form = UserProfileForm(instance=user_profile)
 
-    context = {
-        "form": form,
-    }
+    context = {"form": form}
     return render(request, "pages/settings.html", context)
 
 

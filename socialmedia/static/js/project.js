@@ -6,74 +6,241 @@ document.addEventListener("DOMContentLoaded", function () {
         alertBox.style.display = "block";
     }
 
+    function updateFollowButtons(userId, isFollow) {
+        const button = document.querySelector(`button[data-user-id='${userId}']`);
+        if (button) {
+            if (isFollow) {
+                button.textContent = "Following";
+                button.classList.add("following");
+                button.classList.remove("btn-primary");
+                button.classList.add("btn-secondary");
+            } else {
+                button.textContent = "Follow";
+                button.classList.remove("following");
+                button.classList.remove("btn-secondary");
+                button.classList.add("btn-primary");
+            }
+        }
+    }
+
+    function removeSuggestion(userId) {
+        const suggestionItem = document.getElementById(`suggestion-${userId}`);
+        if (suggestionItem) {
+            suggestionItem.remove();
+        }
+    }
+
+    function updateFollowersCount(userId, followersCount) {
+        const followersCountElement = document.getElementById(`followers-count-${userId}`);
+        if (followersCountElement) {
+            followersCountElement.textContent = `${followersCount} Followers`;
+        }
+    }
+
+    function createPostHtml(post) {
+        const postHtml = `
+            <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <img src="${post.profile_image}" class="rounded-circle" height="40" alt="User Avatar" />
+                        <strong class="ml-2">
+                            <a href="/social/profile/${post.username}/" class="text-dark">${post.username}</a>
+                        </strong>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    ${post.image ? `<img src="${post.image}" alt="Post Image" class="img-fluid" />` : ''}
+                    ${post.video ? `<video controls class="img-fluid mt-3"><source src="${post.video}" type="video/mp4" />Your browser does not support the video tag.</video>` : ''}
+                    ${post.youtube_link ? `<iframe width="560" height="315" src="https://www.youtube.com/embed/${post.youtube_link}" frameborder="0" allowfullscreen></iframe>` : ''}
+                    <p class="mt-3">${post.text}</p>
+                    <div class="d-flex justify-content-between mt-2">
+                        <div>
+                            <button class="btn btn-light like-btn" data-post-id="${post.id}">
+                                <i class="far fa-thumbs-up"></i> Like
+                            </button>
+                            <a href="/social/post/${post.id}/" class="btn btn-light text-dark ml-2">
+                                <i class="far fa-comment"></i> Comment
+                            </a>
+                        </div>
+                        <small class="text-muted">
+                            Liked by <strong id="last-liked-${post.id}">${post.last_liked_user}</strong> and <strong id="likes-count-${post.id}">${post.likes_count}</strong> others
+                        </small>
+                    </div>
+                    <div id="comments-${post.id}" class="comments mt-3">
+                        ${post.comments.map(comment => `
+                            <div class="comment mb-2 d-flex">
+                                <img src="https://via.placeholder.com/150" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
+                                <div class="comment-details ml-2">
+                                    <p class="mb-1">
+                                        <strong>
+                                            <a href="/social/profile/${comment.username}/" class="text-dark">${comment.username}</a>
+                                        </strong> ${comment.text}
+                                    </p>
+                                    <small class="text-muted">${comment.created}</small>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <form method="post" action="/social/post/${post.id}/" class="comment-form mt-2">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector("[name=csrfmiddlewaretoken]").value}" />
+                            <input type="text" name="text" class="form-control" placeholder="Leave a comment" />
+                            <button type="submit" class="btn btn-info ml-2">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        return postHtml;
+    }
+
+    function handleFollowUnfollow(button) {
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        const userId = button.dataset.userId;
+        const isFollow = !button.classList.contains("following");
+        const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json"
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateFollowButtons(userId, isFollow);
+                removeSuggestion(userId);
+                updateSuggestions(data.suggestions);
+                updateFollowersCount(userId, data.followers_count);
+                if (isFollow) {
+                    fetchNewPosts(userId);
+                }
+            } else {
+                showAlert("An error occurred. Please try again.");
+            }
+        });
+    }
+
+    function fetchNewPosts(userId) {
+        fetch(`/social/fetch_new_posts/${userId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.posts && data.posts.length > 0) {
+                const postsContainer = document.querySelector(".profile-content");
+                data.posts.forEach(post => {
+                    const postHtml = createPostHtml(post);
+                    postsContainer.insertAdjacentHTML("afterbegin", postHtml);
+                });
+                addEventListenersToNewPosts();
+            }
+        });
+    }
+
+    function addEventListenersToNewPosts() {
+        document.querySelectorAll(".like-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const postId = this.dataset.postId;
+                fetch(`/social/post/${postId}/like/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                        "Content-Type": "application/json"
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.total_likes !== undefined) {
+                        document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
+                        document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll(".comment-form").forEach(form => {
+            form.addEventListener("submit", function (event) {
+                const textField = form.querySelector("input[name='text']");
+                const maxWords = 10;
+                const maxChars = 20;
+                const words = textField.value.trim().split(/\s+/);
+                const chars = textField.value.trim().length;
+                if (words.length > maxWords) {
+                    event.preventDefault();
+                    showAlert(`This field cannot contain more than ${maxWords} words.`);
+                } else if (chars > maxChars) {
+                    event.preventDefault();
+                    showAlert(`This field cannot contain more than ${maxChars} characters.`);
+                } else if (!textField.value.trim()) {
+                    event.preventDefault();
+                    showAlert("You need to insert a comment");
+                }
+            });
+        });
+    }
+
+    function updateSuggestions(suggestions) {
+        const suggestionsList = document.getElementById("suggestionsList");
+        if (!suggestionsList) {
+            console.error("Element #suggestionsList not found in the DOM");
+            return;
+        }
+        suggestionsList.innerHTML = "";
+        suggestions.forEach(suggestion => {
+            const suggestionItem = `
+                <div class="suggestion-item" id="suggestion-${suggestion.id}">
+                    <img src="https://via.placeholder.com/150" class="rounded-circle" height="40" alt="User Avatar" />
+                    <div class="suggestion-info">
+                        <small><strong><a href="/social/profile/${suggestion.username}/" class="text-dark">${suggestion.username}</a></strong></small>
+                        <br />
+                        <small>Followed by <span id="followers-count-${suggestion.id}">${suggestion.followers_count}</span> others</small>
+                    </div>
+                    <div class="follow-text">
+                        <button class="btn btn-primary follow-btn" data-user-id="${suggestion.id}">Follow</button>
+                    </div>
+                </div>`;
+            suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
+        });
+
+        document.querySelectorAll(".follow-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                handleFollowUnfollow(button);
+            });
+        });
+    }
+
     document.querySelectorAll(".follow-btn").forEach(button => {
         button.addEventListener("click", function () {
-            const csrfTokenElement = document.querySelector("[name=csrfmiddlewaretoken]");
-            if (!csrfTokenElement) {
-                console.error("CSRF token element not found");
-                return;
-            }
-            const csrfToken = csrfTokenElement.value;
+            handleFollowUnfollow(button);
+        });
+    });
 
-            const userId = this.dataset.userId;
-            const isFollow = !this.classList.contains("following");
-            const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
-            const method = "POST";
-            const button = this;
-
-            fetch(url, {
-                method: method,
+    document.querySelectorAll(".like-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            const postId = this.dataset.postId;
+            fetch(`/social/post/${postId}/like/`, {
+                method: "POST",
                 headers: {
-                    "X-CSRFToken": csrfToken,
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
                     "Content-Type": "application/json"
                 },
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    const followersCountElement = document.getElementById(`followers-count-${userId}`);
-                    followersCountElement.textContent = `${data.followers_count} Followers`;
-                    if (isFollow) {
-                        button.textContent = "Following";
-                        button.classList.add("following");
-                        button.classList.remove("btn-primary");
-                        button.classList.add("btn-secondary");
-                    } else {
-                        button.textContent = "Follow";
-                        button.classList.remove("following");
-                        button.classList.remove("btn-secondary");
-                        button.classList.add("btn-primary");
-                    }
-                    const suggestionsList = document.getElementById("suggestionsList");
-                    suggestionsList.innerHTML = "";
-                    data.suggestions.forEach(suggestion => {
-                        const suggestionItem = `
-                            <div class="suggestion-item" id="suggestion-${suggestion.id}">
-                                <img src="https://via.placeholder.com/150" class="rounded-circle" height="40" alt="User Avatar" />
-                                <div class="suggestion-info">
-                                    <small><strong><a href="/social/profile/${suggestion.username}/" class="text-dark">${suggestion.username}</a></strong></small>
-                                    <br />
-                                    <small>Followed by 0 others</small>
-                                </div>
-                                <div class="follow-text">
-                                    <button class="btn btn-primary follow-btn" data-user-id="${suggestion.id}">Follow</button>
-                                </div>
-                            </div>`;
-                        suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
-                    });
+                if (data.total_likes !== undefined) {
+                    document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
+                    document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
                 }
             });
         });
     });
 
-    var commentForms = document.querySelectorAll(".comment-form");
-    commentForms.forEach(function (form) {
+    document.querySelectorAll(".comment-form").forEach(form => {
         form.addEventListener("submit", function (event) {
-            var textField = form.querySelector("input[name='text']");
-            var maxWords = 10;
-            var maxChars = 20;
-            var words = textField.value.trim().split(/\s+/);
-            var chars = textField.value.trim().length;
+            const textField = form.querySelector("input[name='text']");
+            const maxWords = 10;
+            const maxChars = 20;
+            const words = textField.value.trim().split(/\s+/);
+            const chars = textField.value.trim().length;
             if (words.length > maxWords) {
                 event.preventDefault();
                 showAlert(`This field cannot contain more than ${maxWords} words.`);
@@ -122,26 +289,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
-    document.querySelectorAll(".like-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            const postId = this.dataset.postId;
-            fetch(`/social/post/${postId}/like/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-                    "Content-Type": "application/json"
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.total_likes !== undefined) {
-                    document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
-                    document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-                }
-            });
-        });
-    });
 
     var seeAllBtn = document.getElementById("seeAllBtn");
     if (seeAllBtn) {
@@ -220,4 +367,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    addEventListenersToNewPosts();
 });

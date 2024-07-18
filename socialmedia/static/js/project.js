@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <p class="mt-3">${post.text}</p>
                     <div class="d-flex justify-content-between mt-2">
                         <div>
-                            <button class="btn btn-light like-btn" data-post-id="${post.id}">
+                            <button class="btn btn-light like-btn ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
                                 <i class="far fa-thumbs-up"></i> Like
                             </button>
                             <a href="/social/post/${post.id}/" class="btn btn-light text-dark ml-2">
@@ -139,21 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function addEventListenersToNewPosts() {
         document.querySelectorAll(".like-btn").forEach(button => {
             button.addEventListener("click", function () {
-                const postId = this.dataset.postId;
-                fetch(`/social/post/${postId}/like/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-                        "Content-Type": "application/json"
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.total_likes !== undefined) {
-                        document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
-                        document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-                    }
-                });
+                handleLikeButtonClick(this);
             });
         });
 
@@ -175,6 +161,25 @@ document.addEventListener("DOMContentLoaded", function () {
                     showAlert("You need to insert a comment");
                 }
             });
+        });
+    }
+
+    function handleLikeButtonClick(button) {
+        const postId = button.dataset.postId;
+        fetch(`/social/post/${postId}/like/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                "Content-Type": "application/json"
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.total_likes !== undefined) {
+                document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
+                document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
+                button.classList.toggle("liked", data.user_liked);
+            }
         });
     }
 
@@ -216,21 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".like-btn").forEach(button => {
         button.addEventListener("click", function () {
-            const postId = this.dataset.postId;
-            fetch(`/social/post/${postId}/like/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
-                    "Content-Type": "application/json"
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.total_likes !== undefined) {
-                    document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
-                    document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-                }
-            });
+            handleLikeButtonClick(this);
         });
     });
 

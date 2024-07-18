@@ -197,7 +197,8 @@
                     <p class="mt-3">{{ post.text }}</p>
                     <div class="d-flex justify-content-between mt-2">
                       <div>
-                        <button class="btn btn-light like-btn" data-post-id="{{ post.id }}">
+                        <button class="btn btn-light like-btn {% if request.user in post.likes.all %}liked{% endif %}"
+                                data-post-id="{{ post.id }}">
                           <i class="far fa-thumbs-up"></i> Like
                         </button>
                         <a href="{% url 'social:detail' post.id %}"
@@ -209,45 +210,45 @@
                         Liked by <strong id="last-liked-{{ post.id }}">{{ last_liked_user }}</strong> and <strong id="likes-count-{{ post.id }}">{{ post.likes.count }}</strong> others
                       </small>
                     </div>
-                  </div>
-                  <div id="comments-{{ post.id }}" class="comments mt-3">
-                    {% for comment in comments %}
-                      <div class="comment mb-2 d-flex">
-                        {% if comment.user.profile.profile_image %}
-                          <img src="{{ comment.user.profile.profile_image.url }}"
-                               alt="Profile Picture"
-                               class="rounded-circle comment-img"
-                               height="30" />
-                        {% else %}
-                          <img src="https://via.placeholder.com/150"
-                               alt="Profile Picture"
-                               class="rounded-circle comment-img"
-                               height="30" />
-                        {% endif %}
-                        <div class="comment-details ml-2">
-                          <p class="mb-1">
-                            <strong>
-                              <a href="{% url 'social:my_profile' comment.user.username %}"
-                                 class="text-dark">{{ comment.user.username }}</a>
-                            </strong> {{ comment.text }}
-                          </p>
-                          <small class="text-muted">{{ comment.created|date:"M d, Y" }}</small>
+                    <div id="comments-{{ post.id }}" class="comments mt-3">
+                      {% for comment in comments %}
+                        <div class="comment mb-2 d-flex">
+                          {% if comment.user.profile.profile_image %}
+                            <img src="{{ comment.user.profile.profile_image.url }}"
+                                 alt="Profile Picture"
+                                 class="rounded-circle comment-img"
+                                 height="30" />
+                          {% else %}
+                            <img src="https://via.placeholder.com/150"
+                                 alt="Profile Picture"
+                                 class="rounded-circle comment-img"
+                                 height="30" />
+                          {% endif %}
+                          <div class="comment-details ml-2">
+                            <p class="mb-1">
+                              <strong>
+                                <a href="{% url 'social:my_profile' comment.user.username %}"
+                                   class="text-dark">{{ comment.user.username }}</a>
+                              </strong> {{ comment.text }}
+                            </p>
+                            <small class="text-muted">{{ comment.created|date:"M d, Y" }}</small>
+                          </div>
                         </div>
-                      </div>
-                    {% endfor %}
-                    <form method="post"
-                          action="{% url 'social:detail' post.id %}"
-                          class="comment-form mt-2">
-                      {% csrf_token %}
-                      {{ comment_form.non_field_errors }}
-                      <input type="text"
-                             name="text"
-                             class="form-control"
-                             placeholder="Leave a comment"
-                             value="{{ comment_form.text.value|default_if_none:'' }}" />
-                      {% if comment_form.text.errors %}<div class="text-danger">{{ comment_form.text.errors }}</div>{% endif %}
-                      <button type="submit" class="btn btn-info ml-2">Post</button>
-                    </form>
+                      {% endfor %}
+                      <form method="post"
+                            action="{% url 'social:detail' post.id %}"
+                            class="comment-form mt-2">
+                        {% csrf_token %}
+                        {{ comment_form.non_field_errors }}
+                        <input type="text"
+                               name="text"
+                               class="form-control"
+                               placeholder="Leave a comment"
+                               value="{{ comment_form.text.value|default_if_none:'' }}" />
+                        {% if comment_form.text.errors %}<div class="text-danger">{{ comment_form.text.errors }}</div>{% endif %}
+                        <button type="submit" class="btn btn-info ml-2">Post</button>
+                      </form>
+                    </div>
                   </div>
                 </div>
               {% endfor %}

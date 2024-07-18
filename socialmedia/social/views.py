@@ -214,8 +214,13 @@ def like_post(request, post_id):
         like.delete()
     total_likes = post.likes.count()
     last_liked_user = post.likes.last().user.username if total_likes > 0 else None
+    user_liked = created or Like.objects.filter(user=request.user, post=post).exists()
     return JsonResponse(
-        {"total_likes": total_likes, "last_liked_user": last_liked_user},
+        {
+            "total_likes": total_likes,
+            "last_liked_user": last_liked_user,
+            "user_liked": user_liked,
+        },
     )
 
 

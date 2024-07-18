@@ -165,9 +165,6 @@
                 <button class="btn btn-light like-btn" data-post-id="{{ post_detail.id }}">
                   <i class="far fa-thumbs-up"></i> Like
                 </button>
-                <a href="#comments-section" class="btn btn-light text-dark ml-2">
-                  <i class="far fa-comment"></i> Comment
-                </a>
               </div>
               <small class="text-muted">
                 Liked by <strong id="last-liked-{{ post_detail.id }}">{{ last_liked_user }}</strong> and <strong id="likes-count-{{ post_detail.id }}">{{ post_detail.likes.count }}</strong> others

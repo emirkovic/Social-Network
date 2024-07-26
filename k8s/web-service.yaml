@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name: web
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - port: 8000
-    nodePort: 30001
+    targetPort: 8000
   selector:
     app: web

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: db
-        image: postgres:16
+        image: erikmirkovic/postgres:16
         env:
         - name: POSTGRES_DB
           value: "socialmedia"

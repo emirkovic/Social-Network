@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: socialmedia
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 3Vwh3KsM
+      POSTGRES_PASSWORD: 8426
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

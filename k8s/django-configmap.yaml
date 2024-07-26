@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: django-config
-data:
-  DJANGO_SECRET_KEY: "YAUhXE0Xph6cyuLiN6gmneiXt6vn9aLCjFH5xwC8tYwGYlQZd8W4GNwJN2iFoCHE"

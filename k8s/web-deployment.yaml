@@ -28,3 +28,15 @@ spec:
           value: "development"
         ports:
         - containerPort: 8000
+        volumeMounts:
+        - mountPath: /app/staticfiles
+          name: static-volume
+        - mountPath: /app/media
+          name: media-volume
+      volumes:
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: pvc-static
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: pvc-media

@@ -9,17 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateFollowButtons(userId, isFollow) {
         const button = document.querySelector(`button[data-user-id='${userId}']`);
         if (button) {
-            if (isFollow) {
-                button.textContent = "Following";
-                button.classList.add("following");
-                button.classList.remove("btn-primary");
-                button.classList.add("btn-secondary");
-            } else {
-                button.textContent = "Follow";
-                button.classList.remove("following");
-                button.classList.remove("btn-secondary");
-                button.classList.add("btn-primary");
-            }
+            button.textContent = isFollow ? "Following" : "Follow";
+            button.classList.toggle("following", isFollow);
+            button.classList.toggle("btn-primary", !isFollow);
+            button.classList.toggle("btn-secondary", isFollow);
         }
     }
 
@@ -38,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function createPostHtml(post) {
-        const postHtml = `
+        return `
             <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
@@ -47,6 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <a href="/social/profile/${post.username}/" class="text-dark">${post.username}</a>
                         </strong>
                     </div>
+                    <button class="btn btn-danger delete-post" data-post-id="${post.id}">DELETE</button>
                 </div>
                 <div class="mt-3">
                     ${post.image ? `<img src="${post.image}" alt="Post Image" class="img-fluid" />` : ''}
@@ -69,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div id="comments-${post.id}" class="comments mt-3">
                         ${post.comments.map(comment => `
                             <div class="comment mb-2 d-flex" id="comment-${comment.id}">
-                                <img src="https://via.placeholder.com/150" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
+                                <img src="${comment.user.profile_image}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
                                 <div class="comment-details ml-2">
                                     <p class="mb-1">
                                         <strong>
@@ -90,7 +84,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
         `;
-        return postHtml;
     }
 
     function handleFollowUnfollow(button) {
@@ -126,7 +119,6 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch(`/social/fetch_new_posts/${userId}/`)
         .then(response => response.json())
         .then(data => {
-            console.log('Fetched new posts:', data);
             if (data.posts && data.posts.length > 0) {
                 const postsContainer = document.querySelector(".profile-posts");
                 data.posts.forEach(post => {
@@ -196,6 +188,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
                 document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
                 button.classList.toggle("liked", data.user_liked);
+                button.querySelector("i").classList.toggle("fas", data.user_liked);
+                button.querySelector("i").classList.toggle("far", !data.user_liked);
             }
         });
     }
@@ -203,6 +197,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleDeleteComment(button) {
         const commentId = button.dataset.commentId;
         const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
         if (confirm("Are you sure you want to delete this comment?")) {
             fetch(`/social/delete_comment/${commentId}/`, {
                 method: "POST",
@@ -218,13 +213,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     alert("Failed to delete the comment.");
                 }
-            });
+            })
         }
     }
 
     function handleDeletePost(button) {
         const postId = button.dataset.postId;
         const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
         if (confirm("Are you sure you want to delete this post?")) {
             fetch(`/social/delete_post/${postId}/`, {
                 method: "POST",
@@ -240,7 +236,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else {
                     alert("Failed to delete the post.");
                 }
-            });
+            })
         }
     }
 
@@ -254,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function () {
         suggestions.forEach(suggestion => {
             const suggestionItem = `
                 <div class="suggestion-item" id="suggestion-${suggestion.id}">
-                    <img src="https://via.placeholder.com/150" class="rounded-circle" height="40" alt="User Avatar" />
+                    <img src="${suggestion.profile_image}" class="rounded-circle" height="40" alt="User Avatar" />
                     <div class="suggestion-info">
                         <small><strong><a href="/social/profile/${suggestion.username}/" class="text-dark">${suggestion.username}</a></strong></small>
                         <br />
@@ -348,11 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (uploadBtn) {
         uploadBtn.addEventListener("click", function () {
             var postForm = document.getElementById("postForm");
-            if (postForm.style.display === "none" || postForm.style.display === "") {
-                postForm.style.display = "block";
-            } else {
-                postForm.style.display = "none";
-            }
+            postForm.style.display = postForm.style.display === "block" ? "none" : "block";
         });
     }
 
@@ -360,11 +352,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (seeAllBtn) {
         seeAllBtn.addEventListener("click", function () {
             var suggestionsList = document.getElementById("suggestionsList");
-            if (suggestionsList.style.display === "none" || suggestionsList.style.display === "") {
-                suggestionsList.style.display = "block";
-            } else {
-                suggestionsList.style.display = "none";
-            }
+            suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
         });
     }
 
@@ -407,31 +395,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
             searchResultsDropdown.style.display = 'none';
         }
-    });
-
-    document.querySelectorAll(".delete-post").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            const postId = this.dataset.postId;
-            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-            if (confirm("Are you sure you want to delete this post?")) {
-                fetch(`/social/delete_post/${postId}/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": csrfToken,
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById(`post-${postId}`).remove();
-                    } else {
-                        alert("Failed to delete the post.");
-                    }
-                });
-            }
-        });
     });
 
     addEventListenersToNewPosts();

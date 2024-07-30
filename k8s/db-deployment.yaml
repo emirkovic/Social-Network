@@ -3,10 +3,10 @@ kind: Deployment
 metadata:
   name: db
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: db
+  replicas: 1
   template:
     metadata:
       labels:
@@ -25,9 +25,9 @@ spec:
         ports:
         - containerPort: 5432
         volumeMounts:
-        - mountPath: /var/lib/postgresql/data
-          name: postgres-storage
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
       volumes:
-      - name: postgres-storage
+      - name: postgres-data
         persistentVolumeClaim:
-          claimName: postgres-pvc
+          claimName: postgres-pv-claim

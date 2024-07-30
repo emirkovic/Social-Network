@@ -13,7 +13,7 @@ body {
 }
 
 .profile-header {
-    background: url('path/to/your/background/image.jpg') no-repeat center center;
+    background: url("{% static 'profiles/background-image.png' %}") no-repeat center center;
     background-size: cover;
     padding: 40px;
     text-align: center;

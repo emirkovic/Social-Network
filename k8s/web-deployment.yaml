@@ -3,10 +3,10 @@ kind: Deployment
 metadata:
   name: web
 spec:
-  replicas: 3
   selector:
     matchLabels:
       app: web
+  replicas: 3
   template:
     metadata:
       labels:
@@ -16,14 +16,18 @@ spec:
       - name: web
         image: erikmirkovic/social-network-web:latest
         env:
-        - name: DATABASE_URL
-          value: "postgres://postgres:8426@db:5432/socialmedia"
         - name: DJANGO_SECRET_KEY
           value: "YAUhXE0Xph6cyuLiN6gmneiXt6vn9aLCjFH5xwC8tYwGYlQZd8W4GNwJN2iFoCHE"
+        - name: DATABASE_URL
+          value: "postgres://postgres:8426@db:5432/socialmedia"
         - name: DJANGO_DEBUG
-          value: "true"
+          value: "True"
         - name: DJANGO_SETTINGS_MODULE
           value: "config.settings.local"
+        - name: DJANGO_ADMIN_URL
+          value: "admin/"
+        - name: DJANGO_ALLOWED_HOSTS
+          value: "socialmedia.com,localhost,127.0.0.1"
         - name: DJANGO_ENV
           value: "development"
         - name: REDIS_URL
@@ -31,14 +35,9 @@ spec:
         ports:
         - containerPort: 8000
         volumeMounts:
-        - mountPath: /app/staticfiles
-          name: static-volume
-        - mountPath: /app/media
-          name: media-volume
+        - name: media
+          mountPath: /app/socialmedia/media
       volumes:
-      - name: static-volume
+      - name: media
         persistentVolumeClaim:
-          claimName: pvc-static
-      - name: media-volume
-        persistentVolumeClaim:
-          claimName: pvc-media
+          claimName: media-pv-claim

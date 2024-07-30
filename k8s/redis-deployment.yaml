@@ -3,10 +3,10 @@ kind: Deployment
 metadata:
   name: redis
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: redis
+  replicas: 1
   template:
     metadata:
       labels:

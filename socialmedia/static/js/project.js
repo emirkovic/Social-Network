@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
         alertMessage.textContent = message;
         alertBox.style.display = "block";
     }
-
     function updateFollowButtons(userId, isFollow) {
         const button = document.querySelector(`button[data-user-id='${userId}']`);
         if (button) {
@@ -15,21 +14,18 @@ document.addEventListener("DOMContentLoaded", function () {
             button.classList.toggle("btn-secondary", isFollow);
         }
     }
-
     function removeSuggestion(userId) {
         const suggestionItem = document.getElementById(`suggestion-${userId}`);
         if (suggestionItem) {
             suggestionItem.remove();
         }
     }
-
     function updateFollowersCount(userId, followersCount) {
         const followersCountElement = document.getElementById(`followers-count-${userId}`);
         if (followersCountElement) {
             followersCountElement.textContent = `${followersCount} Followers`;
         }
     }
-
     function createPostHtml(post) {
         return `
             <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
@@ -49,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <p class="mt-3">${post.text}</p>
                     <div class="d-flex justify-content-between mt-2">
                         <div>
-                            <button class="btn btn-light like-btn ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
+                            <button class="btn btn-light like-btn like_profile ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
                                 <i class="far fa-thumbs-up"></i> Like
                             </button>
                             <a href="/social/post/${post.id}/" class="btn btn-light text-dark ml-2">
@@ -85,13 +81,11 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
         `;
     }
-
     function handleFollowUnfollow(button) {
         const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
         const userId = button.dataset.userId;
         const isFollow = !button.classList.contains("following");
         const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
-
         fetch(url, {
             method: "POST",
             headers: {
@@ -114,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
     function fetchNewPosts(userId) {
         fetch(`/social/fetch_new_posts/${userId}/`)
         .then(response => response.json())
@@ -130,14 +123,17 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error fetching new posts:', error));
     }
-
     function addEventListenersToNewPosts() {
-        document.querySelectorAll(".like-btn").forEach(button => {
+        document.querySelectorAll(".like_profile").forEach(button => {
             button.addEventListener("click", function () {
                 handleLikeButtonClick(this);
             });
         });
-
+        document.querySelectorAll(".like_details").forEach(button => {
+            button.addEventListener("click", function () {
+                handleLikeButtonClick(this);
+            });
+        });
         document.querySelectorAll(".comment-form").forEach(form => {
             form.addEventListener("submit", function (event) {
                 const textField = form.querySelector("input[name='text']");
@@ -157,14 +153,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
         });
-
         document.querySelectorAll(".delete-comment").forEach(button => {
             button.addEventListener("click", function (event) {
                 event.preventDefault();
                 handleDeleteComment(this);
             });
         });
-
         document.querySelectorAll(".delete-post").forEach(button => {
             button.addEventListener("click", function (event) {
                 event.preventDefault();
@@ -172,32 +166,42 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     }
-
     function handleLikeButtonClick(button) {
         const postId = button.dataset.postId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
         fetch(`/social/post/${postId}/like/`, {
             method: "POST",
             headers: {
-                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                "X-CSRFToken": csrfToken,
                 "Content-Type": "application/json"
             },
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.total_likes !== undefined) {
+                const buttons = document.querySelectorAll(`.like-btn[data-post-id='${postId}']`);
+                buttons.forEach(btn => {
+                    btn.classList.toggle("liked", data.user_liked);
+                    btn.querySelector("i").classList.toggle("fas", data.user_liked);
+                    btn.querySelector("i").classList.toggle("far", !data.user_liked);
+                });
                 document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
                 document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-                button.classList.toggle("liked", data.user_liked);
-                button.querySelector("i").classList.toggle("fas", data.user_liked);
-                button.querySelector("i").classList.toggle("far", !data.user_liked);
             }
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+            showAlert('An error occurred. Please try again.');
         });
     }
-
     function handleDeleteComment(button) {
         const commentId = button.dataset.commentId;
         const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
         if (confirm("Are you sure you want to delete this comment?")) {
             fetch(`/social/delete_comment/${commentId}/`, {
                 method: "POST",
@@ -216,11 +220,9 @@ document.addEventListener("DOMContentLoaded", function () {
             })
         }
     }
-
     function handleDeletePost(button) {
         const postId = button.dataset.postId;
         const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
         if (confirm("Are you sure you want to delete this post?")) {
             fetch(`/social/delete_post/${postId}/`, {
                 method: "POST",
@@ -239,7 +241,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
         }
     }
-
     function updateSuggestions(suggestions) {
         const suggestionsList = document.getElementById("suggestionsList");
         if (!suggestionsList) {
@@ -262,26 +263,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>`;
             suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
         });
-
         document.querySelectorAll(".follow-btn").forEach(button => {
             button.addEventListener("click", function () {
                 handleFollowUnfollow(button);
             });
         });
     }
-
     document.querySelectorAll(".follow-btn").forEach(button => {
         button.addEventListener("click", function () {
             handleFollowUnfollow(button);
         });
     });
-
-    document.querySelectorAll(".like-btn").forEach(button => {
+    document.querySelectorAll(".like_profile").forEach(button => {
         button.addEventListener("click", function () {
             handleLikeButtonClick(this);
         });
     });
-
+    document.querySelectorAll(".like_details").forEach(button => {
+        button.addEventListener("click", function () {
+            handleLikeButtonClick(this);
+        });
+    });
     document.querySelectorAll(".comment-form").forEach(form => {
         form.addEventListener("submit", function (event) {
             const textField = form.querySelector("input[name='text']");
@@ -301,21 +303,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-
     document.querySelectorAll(".delete-comment").forEach(button => {
         button.addEventListener("click", function (event) {
             event.preventDefault();
             handleDeleteComment(this);
         });
     });
-
     document.querySelectorAll(".delete-post").forEach(button => {
         button.addEventListener("click", function (event) {
             event.preventDefault();
             handleDeletePost(this);
         });
     });
-
     var postForm = document.getElementById("postForm");
     if (postForm) {
         postForm.addEventListener("submit", function (event) {
@@ -339,7 +338,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
     var uploadBtn = document.getElementById("uploadBtn");
     if (uploadBtn) {
         uploadBtn.addEventListener("click", function () {
@@ -347,7 +345,6 @@ document.addEventListener("DOMContentLoaded", function () {
             postForm.style.display = postForm.style.display === "block" ? "none" : "block";
         });
     }
-
     var seeAllBtn = document.getElementById("seeAllBtn");
     if (seeAllBtn) {
         seeAllBtn.addEventListener("click", function () {
@@ -355,13 +352,11 @@ document.addEventListener("DOMContentLoaded", function () {
             suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
         });
     }
-
     const searchInput = document.getElementById('searchInput');
     const searchResultsDropdown = document.createElement('div');
     searchResultsDropdown.id = 'searchResultsDropdown';
     searchResultsDropdown.className = 'dropdown-menu';
     searchInput.parentNode.appendChild(searchResultsDropdown);
-
     searchInput.addEventListener('input', function () {
         const query = searchInput.value;
         if (query.length > 2) {
@@ -390,12 +385,10 @@ document.addEventListener("DOMContentLoaded", function () {
             searchResultsDropdown.style.display = 'none';
         }
     });
-
     document.addEventListener('click', function (event) {
         if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
             searchResultsDropdown.style.display = 'none';
         }
     });
-
     addEventListenersToNewPosts();
 });

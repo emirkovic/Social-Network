@@ -1,7 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
     function showAlert(message) {
-        var alertBox = document.getElementById("customAlert");
-        var alertMessage = document.getElementById("alertMessage");
+        const alertBox = document.getElementById("customAlert");
+        const alertMessage = document.getElementById("alertMessage");
         alertMessage.textContent = message;
         alertBox.style.display = "block";
     }
@@ -52,99 +54,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>`;
             suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
         });
-    }
-
-    function handleLikeButtonClick(button) {
-        const postId = button.dataset.postId;
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        fetch(`/social/post/${postId}/like/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/json"
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.total_likes !== undefined) {
-                const buttons = document.querySelectorAll(`.like-btn[data-post-id='${postId}']`);
-                buttons.forEach(btn => {
-                    btn.classList.toggle("liked", data.user_liked);
-                    btn.querySelector("i").classList.toggle("fas", data.user_liked);
-                    btn.querySelector("i").classList.toggle("far", !data.user_liked);
-                });
-                document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
-                document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-            }
-        })
-        .catch(error => {
-            console.error('There was a problem with the fetch operation:', error);
-        });
-    }
-
-    function handleDeleteComment(button) {
-        const commentId = button.dataset.commentId;
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        if (confirm("Are you sure you want to delete this comment?")) {
-            fetch(`/social/delete_comment/${commentId}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`comment-${commentId}`).remove();
-                } else {
-                    alert("Failed to delete the comment.");
-                }
-            })
-        }
-    }
-
-    function handleDeletePost(button) {
-        const postId = button.dataset.postId;
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        if (confirm("Are you sure you want to delete this post?")) {
-            fetch(`/social/delete_post/${postId}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`post-${postId}`).remove();
-                } else {
-                    alert("Failed to delete the post.");
-                }
-            })
-            .catch(error => {
-                console.error('Error during delete post operation:', error);
-            });
-        }
+        attachEventListenersToNewElements();
     }
 
     function handleFollowUnfollow(button) {
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
         const userId = button.dataset.userId;
         const isFollow = !button.classList.contains("following");
         const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
+
         fetch(url, {
             method: "POST",
             headers: {
                 "X-CSRFToken": csrfToken,
                 "Content-Type": "application/json"
-            },
+            }
         })
         .then(response => response.json())
         .then(data => {
@@ -172,12 +95,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     const postHtml = createPostHtml(post);
                     postsContainer.insertAdjacentHTML("afterbegin", postHtml);
                 });
+                attachEventListenersToNewElements();
             }
         })
         .catch(error => console.error('Error fetching new posts:', error));
     }
 
     function createPostHtml(post) {
+        const currentUser = "{{ user.username }}";
+        const isCurrentUserPost = post.username === currentUser;
         return `
             <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
                 <div class="d-flex align-items-center justify-content-between">
@@ -187,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <a href="/social/profile/${post.username}/" class="text-dark">${post.username}</a>
                         </strong>
                     </div>
-                    <button class="btn btn-danger delete-post" data-post-id="${post.id}">DELETE</button>
+                    ${isCurrentUserPost ? `<button class="btn btn-danger delete-post" data-post-id="${post.id}">DELETE</button>` : ''}
                 </div>
                 <div class="mt-3">
                     ${post.image ? `<img src="${post.image}" alt="Post Image" class="img-fluid" />` : ''}
@@ -196,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <p class="mt-3">${post.text}</p>
                     <div class="d-flex justify-content-between mt-2">
                         <div>
-                            <button class="btn btn-light like-btn like_profile ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
+                            <button class="btn btn-light like-btn ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
                                 <i class="far fa-thumbs-up"></i> Like
                             </button>
                             <a href="/social/post/${post.id}/" class="btn btn-light text-dark ml-2">
@@ -233,57 +159,137 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
     }
 
-    document.body.addEventListener('click', function (event) {
-        const likeButton = event.target.closest('.like-btn');
-        const followButton = event.target.closest('.follow-btn');
-        const deleteCommentButton = event.target.closest('.delete-comment');
-        const deletePostButton = event.target.closest('.delete-post');
+    function handleLikeButtonClick(button) {
+        const postId = button.dataset.postId;
 
-        if (likeButton) {
-            handleLikeButtonClick(likeButton);
-        }
-        if (followButton) {
-            handleFollowUnfollow(followButton);
-        }
-        if (deleteCommentButton) {
-            handleDeleteComment(deleteCommentButton);
-        }
-        if (deletePostButton) {
-            handleDeletePost(deletePostButton);
-        }
-    });
+        fetch(`/social/post/${postId}/like/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.total_likes !== undefined) {
+                const buttons = document.querySelectorAll(`.like-btn[data-post-id='${postId}']`);
+                buttons.forEach(btn => {
+                    btn.classList.toggle("liked", data.user_liked);
+                    btn.querySelector("i").classList.toggle("fas", data.user_liked);
+                    btn.querySelector("i").classList.toggle("far", !data.user_liked);
+                });
+                document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
+                document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
+            }
+        })
+        .catch(error => console.error('Error handling like:', error));
+    }
 
-    document.querySelectorAll(".comment-form").forEach(form => {
-        form.addEventListener("submit", function (event) {
-            const textField = form.querySelector("input[name='text']");
+    function handleDeleteComment(button) {
+        const commentId = button.dataset.commentId;
+        if (confirm("Are you sure you want to delete this comment?")) {
+            fetch(`/social/delete_comment/${commentId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`comment-${commentId}`).remove();
+                } else {
+                    alert("Failed to delete the comment.");
+                }
+            });
+        }
+    }
+
+    function handleDeletePost(button) {
+        const postId = button.dataset.postId;
+        if (confirm("Are you sure you want to delete this post?")) {
+            fetch(`/social/delete_post/${postId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`post-${postId}`).remove();
+                } else {
+                    alert("Failed to delete the post.");
+                }
+            });
+        }
+    }
+
+    function attachEventListenersToNewElements() {
+        document.querySelectorAll(".follow-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                handleFollowUnfollow(button);
+            });
+        });
+
+        document.querySelectorAll(".like-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                handleLikeButtonClick(button);
+            });
+        });
+
+        document.querySelectorAll(".delete-comment").forEach(button => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                handleDeleteComment(button);
+            });
+        });
+
+        document.querySelectorAll(".delete-post").forEach(button => {
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                handleDeletePost(button);
+            });
+        });
+
+        document.querySelectorAll(".comment-form").forEach(form => {
+            form.addEventListener("submit", function (event) {
+                const textField = form.querySelector("input[name='text']");
+                const maxWords = 10;
+                const maxChars = 20;
+                const words = textField.value.trim().split(/\s+/);
+                const chars = textField.value.trim().length;
+
+                if (words.length > maxWords) {
+                    event.preventDefault();
+                    showAlert(`This field cannot contain more than ${maxWords} words.`);
+                } else if (chars > maxChars) {
+                    event.preventDefault();
+                    showAlert(`This field cannot contain more than ${maxChars} characters.`);
+                } else if (!textField.value.trim()) {
+                    event.preventDefault();
+                    showAlert("You need to insert a comment");
+                }
+            });
+        });
+    }
+
+    attachEventListenersToNewElements();
+
+    const postForm = document.getElementById("postForm");
+    if (postForm) {
+        postForm.addEventListener("submit", function (event) {
+            const textField = document.querySelector("textarea[name='text']");
+            const imageField = document.querySelector("input[name='image']");
+            const videoField = document.querySelector("input[name='video']");
+            const youtubeLinkField = document.querySelector("input[name='youtube_link']");
             const maxWords = 10;
             const maxChars = 20;
             const words = textField.value.trim().split(/\s+/);
             const chars = textField.value.trim().length;
-            if (words.length > maxWords) {
-                event.preventDefault();
-                showAlert(`This field cannot contain more than ${maxWords} words.`);
-            } else if (chars > maxChars) {
-                event.preventDefault();
-                showAlert(`This field cannot contain more than ${maxChars} characters.`);
-            } else if (!textField.value.trim()) {
-                event.preventDefault();
-                showAlert("You need to insert a comment");
-            }
-        });
-    });
 
-    var postForm = document.getElementById("postForm");
-    if (postForm) {
-        postForm.addEventListener("submit", function (event) {
-            var textField = document.querySelector("textarea[name='text']");
-            var imageField = document.querySelector("input[name='image']");
-            var videoField = document.querySelector("input[name='video']");
-            var youtubeLinkField = document.querySelector("input[name='youtube_link']");
-            var maxWords = 10;
-            var maxChars = 20;
-            var words = textField.value.trim().split(/\s+/);
-            var chars = textField.value.trim().length;
             if (words.length > maxWords) {
                 event.preventDefault();
                 showAlert(`This field cannot contain more than ${maxWords} words.`);
@@ -297,18 +303,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    var uploadBtn = document.getElementById("uploadBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
     if (uploadBtn) {
         uploadBtn.addEventListener("click", function () {
-            var postForm = document.getElementById("postForm");
+            const postForm = document.getElementById("postForm");
             postForm.style.display = postForm.style.display === "block" ? "none" : "block";
         });
     }
 
-    var seeAllBtn = document.getElementById("seeAllBtn");
+    const seeAllBtn = document.getElementById("seeAllBtn");
     if (seeAllBtn) {
         seeAllBtn.addEventListener("click", function () {
-            var suggestionsList = document.getElementById("suggestionsList");
+            const suggestionsList = document.getElementById("suggestionsList");
             suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
         });
     }
@@ -318,6 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
     searchResultsDropdown.id = 'searchResultsDropdown';
     searchResultsDropdown.className = 'dropdown-menu';
     searchInput.parentNode.appendChild(searchResultsDropdown);
+
     searchInput.addEventListener('input', function () {
         const query = searchInput.value;
         if (query.length > 2) {
@@ -351,37 +358,5 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
             searchResultsDropdown.style.display = 'none';
         }
-    });
-
-    document.querySelectorAll(".follow-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            handleFollowUnfollow(button);
-        });
-    });
-
-    document.querySelectorAll(".like_profile").forEach(button => {
-        button.addEventListener("click", function () {
-            handleLikeButtonClick(this);
-        });
-    });
-
-    document.querySelectorAll(".like_details").forEach(button => {
-        button.addEventListener("click", function () {
-            handleLikeButtonClick(this);
-        });
-    });
-
-    document.querySelectorAll(".delete-comment").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            handleDeleteComment(this);
-        });
-    });
-
-    document.querySelectorAll(".delete-post").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            handleDeletePost(this);
-        });
     });
 });

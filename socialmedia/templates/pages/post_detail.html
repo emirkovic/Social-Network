@@ -41,7 +41,12 @@
             <div class="row w-100">
               <div class="col-md-1"></div>
               <div class="col-md-2">
-                <a class="navbar-brand" href="{% url 'social:index' %}">SocialMediaApp</a>
+                <a class="navbar-brand" href="{% url 'social:index' %}">
+                  <img src="{% static 'images/Logo.png' %}"
+                       alt="Profile Picture"
+                       height="30"
+                       class="me-2" />
+                FollowSphere</a>
               </div>
               <div class="col-md-4">
                 <form class="d-flex input-group w-auto">

@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
         alertMessage.textContent = message;
         alertBox.style.display = "block";
     }
+
     function updateFollowButtons(userId, isFollow) {
         const button = document.querySelector(`button[data-user-id='${userId}']`);
         if (button) {
@@ -14,18 +15,168 @@ document.addEventListener("DOMContentLoaded", function () {
             button.classList.toggle("btn-secondary", isFollow);
         }
     }
+
     function removeSuggestion(userId) {
         const suggestionItem = document.getElementById(`suggestion-${userId}`);
         if (suggestionItem) {
             suggestionItem.remove();
         }
     }
+
     function updateFollowersCount(userId, followersCount) {
         const followersCountElement = document.getElementById(`followers-count-${userId}`);
         if (followersCountElement) {
             followersCountElement.textContent = `${followersCount} Followers`;
         }
     }
+
+    function updateSuggestions(suggestions) {
+        const suggestionsList = document.getElementById("suggestionsList");
+        if (!suggestionsList) {
+            console.error("Element #suggestionsList not found in the DOM");
+            return;
+        }
+        suggestionsList.innerHTML = "";
+        suggestions.forEach(suggestion => {
+            const suggestionItem = `
+                <div class="suggestion-item" id="suggestion-${suggestion.id}">
+                    <img src="${suggestion.profile_image}" class="rounded-circle" height="40" alt="User Avatar" />
+                    <div class="suggestion-info">
+                        <small><strong><a href="/social/profile/${suggestion.username}/" class="text-dark">${suggestion.username}</a></strong></small>
+                        <br />
+                        <small>Followed by <span id="followers-count-${suggestion.id}">${suggestion.followers_count}</span> others</small>
+                    </div>
+                    <div class="follow-text">
+                        <button class="btn btn-primary follow-btn" data-user-id="${suggestion.id}">Follow</button>
+                    </div>
+                </div>`;
+            suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
+        });
+    }
+
+    function handleLikeButtonClick(button) {
+        const postId = button.dataset.postId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        fetch(`/social/post/${postId}/like/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json"
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.total_likes !== undefined) {
+                const buttons = document.querySelectorAll(`.like-btn[data-post-id='${postId}']`);
+                buttons.forEach(btn => {
+                    btn.classList.toggle("liked", data.user_liked);
+                    btn.querySelector("i").classList.toggle("fas", data.user_liked);
+                    btn.querySelector("i").classList.toggle("far", !data.user_liked);
+                });
+                document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
+                document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
+            }
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }
+
+    function handleDeleteComment(button) {
+        const commentId = button.dataset.commentId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        if (confirm("Are you sure you want to delete this comment?")) {
+            fetch(`/social/delete_comment/${commentId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`comment-${commentId}`).remove();
+                } else {
+                    alert("Failed to delete the comment.");
+                }
+            })
+        }
+    }
+
+    function handleDeletePost(button) {
+        const postId = button.dataset.postId;
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        if (confirm("Are you sure you want to delete this post?")) {
+            fetch(`/social/delete_post/${postId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`post-${postId}`).remove();
+                } else {
+                    alert("Failed to delete the post.");
+                }
+            })
+            .catch(error => {
+                console.error('Error during delete post operation:', error);
+            });
+        }
+    }
+
+    function handleFollowUnfollow(button) {
+        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+        const userId = button.dataset.userId;
+        const isFollow = !button.classList.contains("following");
+        const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json"
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateFollowButtons(userId, isFollow);
+                removeSuggestion(userId);
+                updateSuggestions(data.suggestions);
+                updateFollowersCount(userId, data.followers_count);
+                if (isFollow) {
+                    fetchNewPosts(userId);
+                }
+            } else {
+                showAlert("An error occurred. Please try again.");
+            }
+        });
+    }
+
+    function fetchNewPosts(userId) {
+        fetch(`/social/fetch_new_posts/${userId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.posts && data.posts.length > 0) {
+                const postsContainer = document.querySelector(".profile-posts");
+                data.posts.forEach(post => {
+                    const postHtml = createPostHtml(post);
+                    postsContainer.insertAdjacentHTML("afterbegin", postHtml);
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching new posts:', error));
+    }
+
     function createPostHtml(post) {
         return `
             <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
@@ -81,209 +232,27 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
         `;
     }
-    function handleFollowUnfollow(button) {
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        const userId = button.dataset.userId;
-        const isFollow = !button.classList.contains("following");
-        const url = isFollow ? `/social/follow/${userId}/` : `/social/unfollow/${userId}/`;
-        fetch(url, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/json"
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateFollowButtons(userId, isFollow);
-                removeSuggestion(userId);
-                updateSuggestions(data.suggestions);
-                updateFollowersCount(userId, data.followers_count);
-                if (isFollow) {
-                    fetchNewPosts(userId);
-                }
-            } else {
-                showAlert("An error occurred. Please try again.");
-            }
-        });
-    }
-    function fetchNewPosts(userId) {
-        fetch(`/social/fetch_new_posts/${userId}/`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.posts && data.posts.length > 0) {
-                const postsContainer = document.querySelector(".profile-posts");
-                data.posts.forEach(post => {
-                    const postHtml = createPostHtml(post);
-                    postsContainer.insertAdjacentHTML("afterbegin", postHtml);
-                });
-                addEventListenersToNewPosts();
-            }
-        })
-        .catch(error => console.error('Error fetching new posts:', error));
-    }
-    function addEventListenersToNewPosts() {
-        document.querySelectorAll(".like_profile").forEach(button => {
-            button.addEventListener("click", function () {
-                handleLikeButtonClick(this);
-            });
-        });
-        document.querySelectorAll(".like_details").forEach(button => {
-            button.addEventListener("click", function () {
-                handleLikeButtonClick(this);
-            });
-        });
-        document.querySelectorAll(".comment-form").forEach(form => {
-            form.addEventListener("submit", function (event) {
-                const textField = form.querySelector("input[name='text']");
-                const maxWords = 10;
-                const maxChars = 20;
-                const words = textField.value.trim().split(/\s+/);
-                const chars = textField.value.trim().length;
-                if (words.length > maxWords) {
-                    event.preventDefault();
-                    showAlert(`This field cannot contain more than ${maxWords} words.`);
-                } else if (chars > maxChars) {
-                    event.preventDefault();
-                    showAlert(`This field cannot contain more than ${maxChars} characters.`);
-                } else if (!textField.value.trim()) {
-                    event.preventDefault();
-                    showAlert("You need to insert a comment");
-                }
-            });
-        });
-        document.querySelectorAll(".delete-comment").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                handleDeleteComment(this);
-            });
-        });
-        document.querySelectorAll(".delete-post").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                handleDeletePost(this);
-            });
-        });
-    }
-    function handleLikeButtonClick(button) {
-        const postId = button.dataset.postId;
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        fetch(`/social/post/${postId}/like/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": csrfToken,
-                "Content-Type": "application/json"
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.total_likes !== undefined) {
-                const buttons = document.querySelectorAll(`.like-btn[data-post-id='${postId}']`);
-                buttons.forEach(btn => {
-                    btn.classList.toggle("liked", data.user_liked);
-                    btn.querySelector("i").classList.toggle("fas", data.user_liked);
-                    btn.querySelector("i").classList.toggle("far", !data.user_liked);
-                });
-                document.getElementById(`likes-count-${postId}`).textContent = data.total_likes;
-                document.getElementById(`last-liked-${postId}`).textContent = data.last_liked_user || '';
-            }
-        })
-        .catch(error => {
-            console.error('There was a problem with the fetch operation:', error);
-            showAlert('An error occurred. Please try again.');
-        });
-    }
-    function handleDeleteComment(button) {
-        const commentId = button.dataset.commentId;
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        if (confirm("Are you sure you want to delete this comment?")) {
-            fetch(`/social/delete_comment/${commentId}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`comment-${commentId}`).remove();
-                } else {
-                    alert("Failed to delete the comment.");
-                }
-            })
+
+    document.body.addEventListener('click', function (event) {
+        const likeButton = event.target.closest('.like-btn');
+        const followButton = event.target.closest('.follow-btn');
+        const deleteCommentButton = event.target.closest('.delete-comment');
+        const deletePostButton = event.target.closest('.delete-post');
+
+        if (likeButton) {
+            handleLikeButtonClick(likeButton);
         }
-    }
-    function handleDeletePost(button) {
-        const postId = button.dataset.postId;
-        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-        if (confirm("Are you sure you want to delete this post?")) {
-            fetch(`/social/delete_post/${postId}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken,
-                    "Content-Type": "application/json"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById(`post-${postId}`).remove();
-                } else {
-                    alert("Failed to delete the post.");
-                }
-            })
+        if (followButton) {
+            handleFollowUnfollow(followButton);
         }
-    }
-    function updateSuggestions(suggestions) {
-        const suggestionsList = document.getElementById("suggestionsList");
-        if (!suggestionsList) {
-            console.error("Element #suggestionsList not found in the DOM");
-            return;
+        if (deleteCommentButton) {
+            handleDeleteComment(deleteCommentButton);
         }
-        suggestionsList.innerHTML = "";
-        suggestions.forEach(suggestion => {
-            const suggestionItem = `
-                <div class="suggestion-item" id="suggestion-${suggestion.id}">
-                    <img src="${suggestion.profile_image}" class="rounded-circle" height="40" alt="User Avatar" />
-                    <div class="suggestion-info">
-                        <small><strong><a href="/social/profile/${suggestion.username}/" class="text-dark">${suggestion.username}</a></strong></small>
-                        <br />
-                        <small>Followed by <span id="followers-count-${suggestion.id}">${suggestion.followers_count}</span> others</small>
-                    </div>
-                    <div class="follow-text">
-                        <button class="btn btn-primary follow-btn" data-user-id="${suggestion.id}">Follow</button>
-                    </div>
-                </div>`;
-            suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
-        });
-        document.querySelectorAll(".follow-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                handleFollowUnfollow(button);
-            });
-        });
-    }
-    document.querySelectorAll(".follow-btn").forEach(button => {
-        button.addEventListener("click", function () {
-            handleFollowUnfollow(button);
-        });
+        if (deletePostButton) {
+            handleDeletePost(deletePostButton);
+        }
     });
-    document.querySelectorAll(".like_profile").forEach(button => {
-        button.addEventListener("click", function () {
-            handleLikeButtonClick(this);
-        });
-    });
-    document.querySelectorAll(".like_details").forEach(button => {
-        button.addEventListener("click", function () {
-            handleLikeButtonClick(this);
-        });
-    });
+
     document.querySelectorAll(".comment-form").forEach(form => {
         form.addEventListener("submit", function (event) {
             const textField = form.querySelector("input[name='text']");
@@ -303,18 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-    document.querySelectorAll(".delete-comment").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            handleDeleteComment(this);
-        });
-    });
-    document.querySelectorAll(".delete-post").forEach(button => {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
-            handleDeletePost(this);
-        });
-    });
+
     var postForm = document.getElementById("postForm");
     if (postForm) {
         postForm.addEventListener("submit", function (event) {
@@ -338,6 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
     var uploadBtn = document.getElementById("uploadBtn");
     if (uploadBtn) {
         uploadBtn.addEventListener("click", function () {
@@ -345,6 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
             postForm.style.display = postForm.style.display === "block" ? "none" : "block";
         });
     }
+
     var seeAllBtn = document.getElementById("seeAllBtn");
     if (seeAllBtn) {
         seeAllBtn.addEventListener("click", function () {
@@ -352,6 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
             suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
         });
     }
+
     const searchInput = document.getElementById('searchInput');
     const searchResultsDropdown = document.createElement('div');
     searchResultsDropdown.id = 'searchResultsDropdown';
@@ -385,10 +346,42 @@ document.addEventListener("DOMContentLoaded", function () {
             searchResultsDropdown.style.display = 'none';
         }
     });
+
     document.addEventListener('click', function (event) {
         if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
             searchResultsDropdown.style.display = 'none';
         }
     });
-    addEventListenersToNewPosts();
+
+    document.querySelectorAll(".follow-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            handleFollowUnfollow(button);
+        });
+    });
+
+    document.querySelectorAll(".like_profile").forEach(button => {
+        button.addEventListener("click", function () {
+            handleLikeButtonClick(this);
+        });
+    });
+
+    document.querySelectorAll(".like_details").forEach(button => {
+        button.addEventListener("click", function () {
+            handleLikeButtonClick(this);
+        });
+    });
+
+    document.querySelectorAll(".delete-comment").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            handleDeleteComment(this);
+        });
+    });
+
+    document.querySelectorAll(".delete-post").forEach(button => {
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            handleDeletePost(this);
+        });
+    });
 });

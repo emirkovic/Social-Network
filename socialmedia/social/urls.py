@@ -4,6 +4,9 @@ from django.urls import path
 from .views import delete_comment
 from .views import delete_post
 from .views import detail
+from .views import disable_comments
+from .views import edit_post
+from .views import fetch_comments
 from .views import fetch_new_posts
 from .views import follow
 from .views import index
@@ -28,4 +31,7 @@ urlpatterns = [
     path("delete_post/<int:post_id>/", delete_post, name="delete_post"),
     path("fetch_new_posts/<int:user_id>/", fetch_new_posts, name="fetch_new_posts"),
     path("delete_comment/<int:comment_id>/", delete_comment, name="delete_comment"),
+    path("edit_post/<int:post_id>/", edit_post, name="edit_post"),
+    path("disable_comments/<int:post_id>/", disable_comments, name="disable_comments"),
+    path("fetch_comments/<int:post_id>/", fetch_comments, name="fetch_comments"),
 ]

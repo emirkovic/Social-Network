@@ -155,3 +155,18 @@ body {
 #suggestionsList {
     display: none;
 }
+
+.three-dots {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.three-dots::before {
+    content: "\2022 \2022 \2022";
+    font-size: 1.2rem;
+    color: #999999;
+}

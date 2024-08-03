@@ -54,6 +54,7 @@ class Post(models.Model):
     created = models.DateTimeField(default=timezone.now)
     updated = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
+    comments_disabled = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Post by {self.user.username}"

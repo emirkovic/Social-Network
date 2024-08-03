@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db import transaction
 from django.db.models import Q
@@ -16,6 +17,8 @@ from .models import Like
 from .models import Post
 from .models import User
 from .models import UserProfile
+
+PLACEHOLDER_IMAGE_URL = "https://via.placeholder.com/150"
 
 
 @login_required
@@ -36,13 +39,17 @@ def index(request):
         deleted=False,
     ).order_by("-created")
 
+    paginator = Paginator(latest_post_list, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     posts_with_comments = [
         (
             post,
             post.comments.filter(deleted=False).order_by("-created")[:2],
             post.likes.last().user.username if post.likes.count() > 0 else "",
         )
-        for post in latest_post_list
+        for post in page_obj
     ]
 
     suggestions = (
@@ -55,6 +62,7 @@ def index(request):
         "post_form": post_form,
         "suggestions": suggestions,
         "user": request.user,
+        "page_obj": page_obj,
     }
     return render(request, "pages/profile.html", context)
 
@@ -91,6 +99,9 @@ def follow(request, user_id):
         {
             "id": user.id,
             "username": user.username,
+            "profile_image": user.profile.profile_image.url
+            if user.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL,
             "followers_count": user.followers.count(),
         }
         for user in suggestions
@@ -119,6 +130,9 @@ def unfollow(request, user_id):
         {
             "id": user.id,
             "username": user.username,
+            "profile_image": user.profile.profile_image.url
+            if user.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL,
             "followers_count": user.followers.count(),
         }
         for user in suggestions
@@ -142,7 +156,7 @@ def fetch_new_posts(request, user_id):
             "username": post.user.username,
             "profile_image": post.user.profile.profile_image.url
             if post.user.profile.profile_image
-            else "https://via.placeholder.com/150",
+            else PLACEHOLDER_IMAGE_URL,
             "text": post.text,
             "image": post.image.url if post.image else "",
             "video": post.video.url if post.video else "",
@@ -158,9 +172,15 @@ def fetch_new_posts(request, user_id):
                     "username": comment.user.username,
                     "text": comment.text,
                     "created": comment.created.strftime("%b %d, %Y"),
+                    "profile_image": comment.user.profile.profile_image.url
+                    if comment.user.profile.profile_image
+                    else None,
                 }
-                for comment in post.comments.filter(deleted=False)
+                for comment in post.comments.filter(deleted=False).order_by("-created")[
+                    :2
+                ]
             ],
+            "comments_disabled": post.comments_disabled,
         }
         for post in posts
     ]
@@ -266,10 +286,30 @@ def search_users(request):
 
 
 @login_required
+def fetch_comments(request, post_id):
+    post = get_object_or_404(Post, pk=post_id, deleted=False)
+    comments = post.comments.filter(deleted=False).order_by("-created")
+    comments_data = [
+        {
+            "id": comment.id,
+            "username": comment.user.username,
+            "text": comment.text,
+            "created": comment.created.strftime("%b %d, %Y"),
+            "profile_image": comment.user.profile.profile_image.url
+            if comment.user.profile.profile_image
+            else None,
+        }
+        for comment in comments
+    ]
+    return JsonResponse({"comments": comments_data})
+
+
+@login_required
 @require_POST
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, user=request.user)
-    post.delete()
+    post.deleted = True
+    post.save()
     return JsonResponse({"success": True})
 
 
@@ -277,5 +317,32 @@ def delete_post(request, post_id):
 @require_POST
 def delete_comment(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id, user=request.user)
-    comment.delete()
+    comment.deleted = True
+    comment.save()
     return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def edit_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id, user=request.user)
+    form = PostForm(request.POST, request.FILES, instance=post)
+    if form.is_valid():
+        form.save()
+        updated_post = {
+            "text": post.text,
+            "image": post.image.url if post.image else "",
+            "video": post.video.url if post.video else "",
+            "youtube_link": post.youtube_link,
+        }
+        return JsonResponse({"success": True, "post": updated_post})
+    return JsonResponse({"success": False, "errors": form.errors})
+
+
+@login_required
+@require_POST
+def disable_comments(request, post_id):
+    post = get_object_or_404(Post, id=post_id, user=request.user)
+    post.comments_disabled = not post.comments_disabled
+    post.save()
+    return JsonResponse({"success": True, "comments_disabled": post.comments_disabled})

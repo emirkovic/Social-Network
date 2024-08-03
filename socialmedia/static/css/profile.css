@@ -170,3 +170,45 @@ body {
     font-size: 1.2rem;
     color: #999999;
 }
+
+#notifications-panel {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 1000;
+}
+
+#notifications-panel.show {
+    display: block;
+}
+
+#notifications-content {
+    padding: 10px;
+}
+
+.notification {
+    padding: 10px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.notification.new {
+    background-color: #f0f8ff;
+}
+
+.notification p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification small {
+    display: block;
+    color: #888888;
+}

@@ -14,6 +14,7 @@ from .forms import PostForm
 from .forms import UserProfileForm
 from .models import Comment
 from .models import Like
+from .models import Notification
 from .models import Post
 from .models import User
 from .models import UserProfile
@@ -89,6 +90,10 @@ def my_profile(request, username):
 def follow(request, user_id):
     user_to_follow = get_object_or_404(User, id=user_id)
     request.user.profile.following.add(user_to_follow)
+    Notification.objects.create(
+        user=user_to_follow,
+        text=f"{request.user.username} started following you.",
+    )
     followers_count = user_to_follow.followers.count()
     suggestions = (
         User.objects.exclude(id=request.user.id)
@@ -198,6 +203,10 @@ def detail(request, post_id):
             comment.post = post
             comment.user = request.user
             comment.save()
+            Notification.objects.create(
+                user=post.user,
+                text=f"{request.user.username} commented on your post.",
+            )
             return redirect("social:detail", post_id=post_id)
     else:
         comment_form = CommentForm()
@@ -245,6 +254,10 @@ def like_post(request, post_id):
                 user_liked = False
             else:
                 Like.objects.create(user=user, post=post)
+                Notification.objects.create(
+                    user=post.user,
+                    text=f"{user.username} liked your post.",
+                )
                 user_liked = True
 
             total_likes = post.likes.count()
@@ -346,3 +359,17 @@ def disable_comments(request, post_id):
     post.comments_disabled = not post.comments_disabled
     post.save()
     return JsonResponse({"success": True, "comments_disabled": post.comments_disabled})
+
+
+@login_required
+def get_notifications(request):
+    notifications = request.user.notifications.all()
+    notifications_list = [
+        {
+            "text": n.text,
+            "created": n.created.strftime("%b %d, %Y"),
+            "is_read": n.is_read,
+        }
+        for n in notifications
+    ]
+    return JsonResponse(notifications_list, safe=False)

@@ -551,4 +551,40 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error updating post:', error));
         });
     }
+
+    const notificationsIcon = document.getElementById('notifications-icon');
+    const notificationsPanel = document.getElementById('notifications-panel');
+
+    if (notificationsIcon) {
+        notificationsIcon.addEventListener('click', function () {
+            if (notificationsPanel.classList.contains('show')) {
+                notificationsPanel.classList.remove('show');
+            } else {
+                notificationsPanel.classList.add('show');
+                fetchNotifications();
+            }
+        });
+    }
+
+    function fetchNotifications() {
+        fetch('/social/notifications/')
+            .then(response => response.json())
+            .then(data => {
+                const notificationsContent = document.getElementById('notifications-content');
+                notificationsContent.innerHTML = '';
+                data.forEach(notification => {
+                    const notificationElement = document.createElement('div');
+                    notificationElement.classList.add('notification');
+                    if (!notification.is_read) {
+                        notificationElement.classList.add('new');
+                    }
+                    notificationElement.innerHTML = `
+                        <p>${notification.text}</p>
+                        <small>${notification.created}</small>
+                    `;
+                    notificationsContent.appendChild(notificationElement);
+                });
+            })
+            .catch(error => console.error('Error fetching notifications:', error));
+    }
 });

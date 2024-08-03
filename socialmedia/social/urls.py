@@ -9,6 +9,7 @@ from .views import edit_post
 from .views import fetch_comments
 from .views import fetch_new_posts
 from .views import follow
+from .views import get_notifications
 from .views import index
 from .views import like_post
 from .views import my_profile
@@ -34,4 +35,5 @@ urlpatterns = [
     path("edit_post/<int:post_id>/", edit_post, name="edit_post"),
     path("disable_comments/<int:post_id>/", disable_comments, name="disable_comments"),
     path("fetch_comments/<int:post_id>/", fetch_comments, name="fetch_comments"),
+    path("notifications/", get_notifications, name="get_notifications"),
 ]

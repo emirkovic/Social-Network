@@ -84,6 +84,23 @@ class Like(models.Model):
         return f"Like by {self.user.username} on {self.post.id}"
 
 
+class Notification(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name="notifications",
+        on_delete=models.CASCADE,
+    )
+    text = models.CharField(max_length=255)
+    created = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.text}"
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

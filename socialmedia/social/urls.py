@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from .views import delete_comment
+from .views import delete_notifications
 from .views import delete_post
 from .views import detail
 from .views import disable_comments
@@ -36,4 +37,5 @@ urlpatterns = [
     path("disable_comments/<int:post_id>/", disable_comments, name="disable_comments"),
     path("fetch_comments/<int:post_id>/", fetch_comments, name="fetch_comments"),
     path("notifications/", get_notifications, name="get_notifications"),
+    path("delete_notifications/", delete_notifications, name="delete_notifications"),
 ]

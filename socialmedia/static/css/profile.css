@@ -195,12 +195,15 @@ body {
 }
 
 .notification {
+    display: flex;
+    align-items: center;
     padding: 10px;
     border-bottom: 1px solid #e1e1e1;
 }
 
-.notification.new {
-    background-color: #f0f8ff;
+.notification img {
+    margin-right: 10px;
+    border-radius: 50%;
 }
 
 .notification p {
@@ -211,4 +214,28 @@ body {
 .notification small {
     display: block;
     color: #888888;
+}
+
+.notification.new {
+    background-color: #f0f8ff;
+}
+
+#deleteNotificationsBtn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    background-color: #ececec;
+    color: #721c24;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#deleteNotificationsBtn:hover {
+    background-color: #ffbfbf;
+}
+
+#notifications-panel .follow-btn {
+    margin-left: auto;
 }

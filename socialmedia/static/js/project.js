@@ -578,13 +578,51 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (!notification.is_read) {
                         notificationElement.classList.add('new');
                     }
+                    let profileImage = notification.profile_image ? notification.profile_image : 'https://via.placeholder.com/150';
+                    let followButton = '';
+
+                    if (notification.type === 'follow') {
+                        followButton = notification.is_following ?
+                        '<button class="btn btn-secondary follow-btn following" data-user-id="' + notification.user_id + '">Following</button>' :
+                        '<button class="btn btn-primary follow-btn" data-user-id="' + notification.user_id + '">Follow</button>';
+                    }
+
                     notificationElement.innerHTML = `
+                        <img src="${profileImage}" alt="Profile Picture" class="rounded-circle" height="40" />
                         <p>${notification.text}</p>
                         <small>${notification.created}</small>
+                        ${followButton}
                     `;
                     notificationsContent.appendChild(notificationElement);
+                });
+
+                document.querySelectorAll(".follow-btn").forEach(button => {
+                    button.addEventListener("click", function () {
+                        handleFollowUnfollow(button);
+                    });
                 });
             })
             .catch(error => console.error('Error fetching notifications:', error));
     }
+
+    function deleteNotifications() {
+        fetch('/social/delete_notifications/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('notifications-content').innerHTML = '';
+            } else {
+                alert('Failed to delete notifications.');
+            }
+        })
+        .catch(error => console.error('Error deleting notifications:', error));
+    }
+
+    document.getElementById('deleteNotificationsBtn').addEventListener('click', deleteNotifications);
 });

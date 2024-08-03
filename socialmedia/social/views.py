@@ -363,13 +363,34 @@ def disable_comments(request, post_id):
 
 @login_required
 def get_notifications(request):
-    notifications = request.user.notifications.all()
+    notifications = (
+        Notification.objects.filter(user=request.user)
+        .exclude(
+            Q(text__contains="liked your post") & Q(user=request.user),
+        )
+        .all()
+    )
     notifications_list = [
         {
             "text": n.text,
             "created": n.created.strftime("%b %d, %Y"),
             "is_read": n.is_read,
+            "profile_image": n.user.profile.profile_image.url
+            if n.user.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL,
+            "type": "follow" if "started following you" in n.text else "",
+            "is_following": request.user.profile.following.filter(
+                id=n.user.id,
+            ).exists(),
+            "user_id": n.user.id,
         }
         for n in notifications
     ]
     return JsonResponse(notifications_list, safe=False)
+
+
+@login_required
+@require_POST
+def delete_notifications(request):
+    request.user.notifications.all().delete()
+    return JsonResponse({"success": True})

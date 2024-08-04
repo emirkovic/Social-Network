@@ -369,6 +369,10 @@ def get_notifications(request):
             "text": n.text,
             "created": n.created.strftime("%b %d, %Y"),
             "is_read": n.is_read,
+            "username": n.user.username,
+            "profile_image": n.user.profile.profile_image.url
+            if n.user.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL,
         }
         for n in notifications
     ]

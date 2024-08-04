@@ -41,33 +41,33 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Function to fetch notifications
-function fetchNotifications() {
-    fetch('/social/notifications/')
-        .then(response => response.json())
-        .then(data => {
-            const notificationsContent = document.getElementById('notifications-content');
-            notificationsContent.innerHTML = '';
-            data.forEach(notification => {
-                const notificationElement = document.createElement('div');
-                notificationElement.classList.add('notification');
-                if (!notification.is_read) {
-                    notificationElement.classList.add('new');
-                }
-                const profileImage = notification.profile_image ? notification.profile_image : 'https://via.placeholder.com/150';
-                notificationElement.innerHTML = `
-                    <div class="d-flex align-items-center">
-                        <img src="${profileImage}" alt="Profile Picture" class="rounded-circle" height="30" />
-                        <div class="notification-details ml-2">
-                            <p class="mb-1"><strong>${notification.username}</strong> ${notification.text}</p>
-                            <small>${notification.created}</small>
+    function fetchNotifications() {
+        fetch('/social/notifications/')
+            .then(response => response.json())
+            .then(data => {
+                const notificationsContent = document.getElementById('notifications-content');
+                notificationsContent.innerHTML = '';
+                data.forEach(notification => {
+                    const notificationElement = document.createElement('div');
+                    notificationElement.classList.add('notification');
+                    if (!notification.is_read) {
+                        notificationElement.classList.add('new');
+                    }
+                    const profileImage = notification.profile_image ? notification.profile_image : 'https://via.placeholder.com/150';
+                    notificationElement.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <img src="${profileImage}" alt="Profile Picture" class="rounded-circle" height="30" />
+                            <div class="notification-details ml-2">
+                                <p class="mb-1"><strong>${notification.username}</strong> ${notification.text}</p>
+                                <small>${notification.created}</small>
+                            </div>
                         </div>
-                    </div>
-                `;
-                notificationsContent.appendChild(notificationElement);
-            });
-        })
-        .catch(error => console.error('Error fetching notifications:', error));
-}
+                    `;
+                    notificationsContent.appendChild(notificationElement);
+                });
+            })
+            .catch(error => console.error('Error fetching notifications:', error));
+    }
 
     // Attach event listener to notifications icon
     const notificationsIcon = document.getElementById('notifications-icon');

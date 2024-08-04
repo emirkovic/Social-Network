@@ -175,7 +175,7 @@ body {
     position: absolute;
     top: 60px;
     right: 0;
-    width: 300px;
+    width: 450px;
     max-height: 400px;
     overflow-y: auto;
     background-color: #ffffff;
@@ -190,20 +190,29 @@ body {
     display: block;
 }
 
+#clear-notifications {
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: auto;
+    white-space: nowrap;
+    padding-right: 10px;
+}
+
+.dropdown-header {
+    font-size: 14px;
+}
+
 #notifications-content {
     padding: 10px;
 }
 
 .notification {
-    display: flex;
-    align-items: center;
     padding: 10px;
     border-bottom: 1px solid #e1e1e1;
 }
 
-.notification img {
-    margin-right: 10px;
-    border-radius: 50%;
+.notification.new {
+    background-color: #f0f8ff;
 }
 
 .notification p {
@@ -214,28 +223,4 @@ body {
 .notification small {
     display: block;
     color: #888888;
-}
-
-.notification.new {
-    background-color: #f0f8ff;
-}
-
-#deleteNotificationsBtn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    text-align: center;
-    background-color: #ececec;
-    color: #721c24;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#deleteNotificationsBtn:hover {
-    background-color: #ffbfbf;
-}
-
-#notifications-panel .follow-btn {
-    margin-left: auto;
 }

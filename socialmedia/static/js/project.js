@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]") ? document.querySelector("[name=csrfmiddlewaretoken]").value : null;
-    const currentPath = window.location.pathname;
 
+    // Function to show alert messages
     function showAlert(message) {
         const alertBox = document.getElementById("customAlert");
         if (alertBox) {
@@ -11,6 +11,71 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to handle clearing notifications
+    function handleClearNotifications() {
+        fetch("/social/clear_notifications/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const notificationsContent = document.getElementById("notifications-content");
+                notificationsContent.innerHTML = '';
+            } else {
+                console.error("Failed to clear notifications. Please try again.");
+            }
+        })
+        .catch(error => console.error('Error clearing notifications:', error));
+    }
+
+    // Attach the event listener for the "Clear all" text
+    const clearNotifications = document.getElementById("clear-notifications");
+    if (clearNotifications) {
+        clearNotifications.addEventListener("click", function () {
+            handleClearNotifications();
+        });
+    }
+
+    // Function to fetch notifications
+    function fetchNotifications() {
+        fetch('/social/notifications/')
+            .then(response => response.json())
+            .then(data => {
+                const notificationsContent = document.getElementById('notifications-content');
+                notificationsContent.innerHTML = '';
+                data.forEach(notification => {
+                    const notificationElement = document.createElement('div');
+                    notificationElement.classList.add('notification');
+                    if (!notification.is_read) {
+                        notificationElement.classList.add('new');
+                    }
+                    notificationElement.innerHTML = `
+                        <p>${notification.text}</p>
+                        <small>${notification.created}</small>
+                    `;
+                    notificationsContent.appendChild(notificationElement);
+                });
+            })
+            .catch(error => console.error('Error fetching notifications:', error));
+    }
+
+    // Attach event listener to notifications icon
+    const notificationsIcon = document.getElementById('notifications-icon');
+    const notificationsPanel = document.getElementById('notifications-panel');
+    if (notificationsIcon) {
+        notificationsIcon.addEventListener('click', function () {
+            notificationsPanel.classList.toggle('show');
+            if (notificationsPanel.classList.contains('show')) {
+                fetchNotifications();
+            }
+        });
+    }
+
+    // Function to update follow buttons
     function updateFollowButtons(userId, isFollow) {
         const button = document.querySelector(`button[data-user-id='${userId}']`);
         if (button) {
@@ -21,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to remove suggestion
     function removeSuggestion(userId) {
         const suggestionItem = document.getElementById(`suggestion-${userId}`);
         if (suggestionItem) {
@@ -28,6 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to update followers count
     function updateFollowersCount(userId, followersCount) {
         const followersCountElement = document.getElementById(`followers-count-${userId}`);
         if (followersCountElement) {
@@ -35,6 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to update suggestions
     function updateSuggestions(suggestions) {
         const suggestionsList = document.getElementById("suggestionsList");
         if (!suggestionsList) {
@@ -61,6 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
         attachEventListenersToNewElements();
     }
 
+    // Function to handle follow/unfollow
     function handleFollowUnfollow(button) {
         const userId = button.dataset.userId;
         const isFollow = !button.classList.contains("following");
@@ -94,6 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Function to fetch new posts
     function fetchNewPosts(userId) {
         console.log("fetchNewPosts called on path:", currentPath);
         if (currentPath.includes('/social/profile/') && !currentPath.includes('/social/')) {
@@ -117,6 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error fetching new posts:', error));
     }
 
+    // Function to create post HTML
     function createPostHtml(post) {
         const currentUser = "{{ user.username }}";
         const isCurrentUserPost = post.username === currentUser;
@@ -185,6 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>`;
     }
 
+    // Function to handle like button click
     function handleLikeButtonClick(button) {
         const postId = button.dataset.postId;
 
@@ -211,6 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error handling like:', error));
     }
 
+    // Function to handle delete comment
     function handleDeleteComment(button) {
         const commentId = button.dataset.commentId;
         if (confirm("Are you sure you want to delete this comment?")) {
@@ -232,6 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to handle delete post
     function handleDeletePost(button) {
         const postId = button.dataset.postId;
         if (confirm("Are you sure you want to delete this post?")) {
@@ -253,6 +327,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Function to open edit post modal
     function openEditPostModal(postId) {
         const post = document.getElementById(`post-${postId}`);
         const text = post.querySelector('.post-text').innerText;
@@ -270,11 +345,13 @@ document.addEventListener("DOMContentLoaded", function () {
         editPostModal.show();
     }
 
+    // Function to handle edit post
     function handleEditPost(button) {
         const postId = button.dataset.postId;
         openEditPostModal(postId);
     }
 
+    // Function to handle toggle comments
     function handleToggleComments(button) {
         const postId = button.dataset.postId;
 
@@ -324,6 +401,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error toggling comments:', error));
     }
 
+    // Function to attach event listeners to new elements
     function attachEventListenersToNewElements() {
         document.querySelectorAll(".follow-btn").forEach(button => {
             button.addEventListener("click", function () {
@@ -391,8 +469,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Initial attachment of event listeners to elements
     attachEventListenersToNewElements();
 
+    // Handling post form submission
     const postForm = document.getElementById("postForm");
     if (postForm) {
         postForm.addEventListener("submit", function (event) {
@@ -418,6 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Toggle visibility of post form
     const uploadBtn = document.getElementById("uploadBtn");
     if (uploadBtn) {
         uploadBtn.addEventListener("click", function () {
@@ -426,6 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Toggle visibility of suggestions list
     const seeAllBtn = document.getElementById("seeAllBtn");
     if (seeAllBtn) {
         seeAllBtn.addEventListener("click", function () {
@@ -434,6 +516,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Handle search input and results dropdown
     const searchInput = document.getElementById('searchInput');
     const searchResultsDropdown = document.createElement('div');
     searchResultsDropdown.id = 'searchResultsDropdown';
@@ -477,6 +560,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Handle edit post form submission
     const editPostForm = document.getElementById('editPostForm');
     if (editPostForm) {
         editPostForm.addEventListener('submit', function (event) {
@@ -551,78 +635,4 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error updating post:', error));
         });
     }
-
-    const notificationsIcon = document.getElementById('notifications-icon');
-    const notificationsPanel = document.getElementById('notifications-panel');
-
-    if (notificationsIcon) {
-        notificationsIcon.addEventListener('click', function () {
-            if (notificationsPanel.classList.contains('show')) {
-                notificationsPanel.classList.remove('show');
-            } else {
-                notificationsPanel.classList.add('show');
-                fetchNotifications();
-            }
-        });
-    }
-
-    function fetchNotifications() {
-        fetch('/social/notifications/')
-            .then(response => response.json())
-            .then(data => {
-                const notificationsContent = document.getElementById('notifications-content');
-                notificationsContent.innerHTML = '';
-                data.forEach(notification => {
-                    const notificationElement = document.createElement('div');
-                    notificationElement.classList.add('notification');
-                    if (!notification.is_read) {
-                        notificationElement.classList.add('new');
-                    }
-                    let profileImage = notification.profile_image ? notification.profile_image : 'https://via.placeholder.com/150';
-                    let followButton = '';
-
-                    if (notification.type === 'follow') {
-                        followButton = notification.is_following ?
-                        '<button class="btn btn-secondary follow-btn following" data-user-id="' + notification.user_id + '">Following</button>' :
-                        '<button class="btn btn-primary follow-btn" data-user-id="' + notification.user_id + '">Follow</button>';
-                    }
-
-                    notificationElement.innerHTML = `
-                        <img src="${profileImage}" alt="Profile Picture" class="rounded-circle" height="40" />
-                        <p>${notification.text}</p>
-                        <small>${notification.created}</small>
-                        ${followButton}
-                    `;
-                    notificationsContent.appendChild(notificationElement);
-                });
-
-                document.querySelectorAll(".follow-btn").forEach(button => {
-                    button.addEventListener("click", function () {
-                        handleFollowUnfollow(button);
-                    });
-                });
-            })
-            .catch(error => console.error('Error fetching notifications:', error));
-    }
-
-    function deleteNotifications() {
-        fetch('/social/delete_notifications/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('notifications-content').innerHTML = '';
-            } else {
-                alert('Failed to delete notifications.');
-            }
-        })
-        .catch(error => console.error('Error deleting notifications:', error));
-    }
-
-    document.getElementById('deleteNotificationsBtn').addEventListener('click', deleteNotifications);
 });

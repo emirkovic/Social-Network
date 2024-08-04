@@ -224,3 +224,7 @@ body {
     display: block;
     color: #888888;
 }
+
+.notification img {
+    margin-right: 10px;
+}

@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]") ? document.querySelector("[name=csrfmiddlewaretoken]").value : null;
+    const currentPath = window.location.pathname;
 
     // Function to show alert messages
     function showAlert(message) {
@@ -45,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch('/social/notifications/')
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 const notificationsContent = document.getElementById('notifications-content');
                 notificationsContent.innerHTML = '';
                 data.forEach(notification => {
@@ -54,8 +56,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         notificationElement.classList.add('new');
                     }
                     notificationElement.innerHTML = `
-                        <p>${notification.text}</p>
-                        <small>${notification.created}</small>
+                        <div class="d-flex align-items-center">
+                            <img src="${notification.profile_image}" class="rounded-circle" height="30" alt="User Avatar" />
+                            <div class="ml-2">
+                                <p>${notification.text}</p>
+                                <small>${notification.created}</small>
+                            </div>
+                        </div>
                     `;
                     notificationsContent.appendChild(notificationElement);
                 });

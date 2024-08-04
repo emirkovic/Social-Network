@@ -71,9 +71,11 @@ def index(request):
 @login_required
 def my_profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(user=user, image__isnull=False, deleted=False).order_by(
-        "-created",
-    )
+    posts = Post.objects.filter(
+        user=user,
+        image__isnull=False,
+        deleted=False,
+    ).order_by("-created")
     followers_count = user.followers.count()
     following_count = user.profile.following.count()
     context = {
@@ -93,6 +95,7 @@ def follow(request, user_id):
     Notification.objects.create(
         user=user_to_follow,
         text=f"{request.user.username} started following you.",
+        trigger_user=request.user,
     )
     followers_count = user_to_follow.followers.count()
     suggestions = (
@@ -181,9 +184,9 @@ def fetch_new_posts(request, user_id):
                     if comment.user.profile.profile_image
                     else None,
                 }
-                for comment in post.comments.filter(deleted=False).order_by("-created")[
-                    :2
-                ]
+                for comment in post.comments.filter(deleted=False).order_by(
+                    "-created",
+                )[:2]
             ],
             "comments_disabled": post.comments_disabled,
         }
@@ -206,6 +209,7 @@ def detail(request, post_id):
             Notification.objects.create(
                 user=post.user,
                 text=f"{request.user.username} commented on your post.",
+                trigger_user=request.user,
             )
             return redirect("social:detail", post_id=post_id)
     else:
@@ -257,6 +261,7 @@ def like_post(request, post_id):
                 Notification.objects.create(
                     user=post.user,
                     text=f"{user.username} liked your post.",
+                    trigger_user=user,
                 )
                 user_liked = True
 
@@ -364,14 +369,22 @@ def disable_comments(request, post_id):
 @login_required
 def get_notifications(request):
     notifications = request.user.notifications.all()
-    notifications_list = [
-        {
+    notifications_list = []
+
+    for n in notifications:
+        profile_image_url = (
+            n.trigger_user.profile.profile_image.url
+            if n.trigger_user.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL
+        )
+        notification_data = {
             "text": n.text,
             "created": n.created.strftime("%b %d, %Y"),
             "is_read": n.is_read,
+            "profile_image": profile_image_url,
         }
-        for n in notifications
-    ]
+        notifications_list.append(notification_data)
+
     return JsonResponse(notifications_list, safe=False)
 
 

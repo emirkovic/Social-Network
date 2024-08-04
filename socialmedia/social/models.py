@@ -90,6 +90,12 @@ class Notification(models.Model):
         related_name="notifications",
         on_delete=models.CASCADE,
     )
+    trigger_user = models.ForeignKey(
+        User,
+        related_name="triggered_notifications",
+        on_delete=models.CASCADE,
+        default=1,
+    )
     text = models.CharField(max_length=255)
     created = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)

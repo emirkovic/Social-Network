@@ -89,7 +89,35 @@
                         <h6 class="dropdown-header mb-0">Notifications</h6>
                         <span id="clear-notifications" class="text-muted">Clear all</span>
                       </div>
-                      <div id="notifications-content"></div>
+                      <div id="notifications-content">
+                        {% for notification in notifications %}
+                          <div class="notification {% if not notification.is_read %}new{% endif %}">
+                            <div class="d-flex align-items-center">
+                              <img src="{{ notification.profile_image }}"
+                                   class="rounded-circle"
+                                   height="30"
+                                   alt="User Avatar" />
+                              <div class="ml-2">
+                                <p>
+                                  <strong>{{ notification.trigger_user.username }}</strong> {{ notification.text }}
+                                </p>
+                                <small>{{ notification.created }}</small>
+                              </div>
+                              {% if notification.type == 'follow' %}
+                                <div class="follow-text">
+                                  {% if notification.trigger_user in request.user.profile.following.all %}
+                                    <button class="btn btn-secondary follow-btn following"
+                                            data-user-id="{{ notification.trigger_user.id }}">Following</button>
+                                  {% else %}
+                                    <button class="btn btn-primary follow-btn"
+                                            data-user-id="{{ notification.trigger_user.id }}">Follow</button>
+                                  {% endif %}
+                                </div>
+                              {% endif %}
+                            </div>
+                          </div>
+                        {% endfor %}
+                      </div>
                     </div>
                   </li>
                   <li class="nav-item dropdown">

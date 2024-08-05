@@ -85,6 +85,11 @@ class Like(models.Model):
 
 
 class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ("like", "Like"),
+        ("comment", "Comment"),
+        ("follow", "Follow"),
+    ]
     user = models.ForeignKey(
         User,
         related_name="notifications",
@@ -99,6 +104,7 @@ class Notification(models.Model):
     text = models.CharField(max_length=255)
     created = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
+    type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default="like")
 
     class Meta:
         ordering = ["-created"]

@@ -59,13 +59,20 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="d-flex align-items-center">
                             <img src="${notification.profile_image}" class="rounded-circle" height="30" alt="User Avatar" />
                             <div class="ml-2">
-                                <p>${notification.text}</p>
+                                <p><strong>${notification.trigger_user}</strong> ${notification.text}</p>
                                 <small>${notification.created}</small>
                             </div>
+                            ${notification.type === 'follow' ? `
+                                <div class="follow-text">
+                                    <button class="btn ${notification.is_following ? 'btn-secondary following' : 'btn-primary'} follow-btn" data-user-id="${notification.trigger_user_id}">
+                                        ${notification.is_following ? 'Following' : 'Follow'}
+                                    </button>
+                                </div>` : ''}
                         </div>
                     `;
                     notificationsContent.appendChild(notificationElement);
                 });
+                attachEventListenersToFollowButtons();
             })
             .catch(error => console.error('Error fetching notifications:', error));
     }
@@ -153,12 +160,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.success) {
                 updateFollowButtons(userId, isFollow);
-                removeSuggestion(userId);
-                if (document.getElementById("suggestionsList")) {
+                if (data.suggestions) {
+                    removeSuggestion(userId);
                     updateSuggestions(data.suggestions);
                 }
                 updateFollowersCount(userId, data.followers_count);
-
                 if (currentPath.includes('/social/') && !currentPath.includes('/social/profile/')) {
                     if (isFollow) {
                         fetchNewPosts(userId);
@@ -472,6 +478,15 @@ document.addEventListener("DOMContentLoaded", function () {
             button.addEventListener("click", function (event) {
                 event.preventDefault();
                 handleToggleComments(button);
+            });
+        });
+    }
+
+    // Attach event listeners to follow buttons in notifications
+    function attachEventListenersToFollowButtons() {
+        document.querySelectorAll(".follow-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                handleFollowUnfollow(button);
             });
         });
     }

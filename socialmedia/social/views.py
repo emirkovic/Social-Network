@@ -96,6 +96,7 @@ def follow(request, user_id):
         user=user_to_follow,
         text=f"{request.user.username} started following you.",
         trigger_user=request.user,
+        type="follow",
     )
     followers_count = user_to_follow.followers.count()
     suggestions = (
@@ -210,6 +211,7 @@ def detail(request, post_id):
                 user=post.user,
                 text=f"{request.user.username} commented on your post.",
                 trigger_user=request.user,
+                type="comment",
             )
             return redirect("social:detail", post_id=post_id)
     else:
@@ -262,6 +264,7 @@ def like_post(request, post_id):
                     user=post.user,
                     text=f"{user.username} liked your post.",
                     trigger_user=user,
+                    type="like",
                 )
                 user_liked = True
 
@@ -382,6 +385,9 @@ def get_notifications(request):
             "created": n.created.strftime("%b %d, %Y"),
             "is_read": n.is_read,
             "profile_image": profile_image_url,
+            "trigger_user": n.trigger_user.username,
+            "trigger_user_id": n.trigger_user.id,
+            "type": n.type,
         }
         notifications_list.append(notification_data)
 

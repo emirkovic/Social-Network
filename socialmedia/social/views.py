@@ -211,13 +211,14 @@ def detail(request, post_id):
             comment.post = post
             comment.user = request.user
             comment.save()
-            Notification.objects.create(
-                user=post.user,
-                text="commented on your post.",
-                trigger_user=request.user,
-                type="comment",
-                post=post,
-            )
+            if post.user != request.user:
+                Notification.objects.create(
+                    user=post.user,
+                    text="commented on your post.",
+                    trigger_user=request.user,
+                    type="comment",
+                    post=post,
+                )
             return redirect("social:detail", post_id=post_id)
     else:
         comment_form = CommentForm()

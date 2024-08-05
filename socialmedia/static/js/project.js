@@ -205,71 +205,71 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to create post HTML
     function createPostHtml(post) {
         const currentUser = "{{ user.username }}";
-        const isCurrentUserPost = post.username === currentUser;
-        const profileImage = post.profile_image ? post.profile_image : 'https://via.placeholder.com/150';
-        return `
-            <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center">
-                        <img src="${profileImage}" class="rounded-circle" height="40" alt="User Avatar" />
-                        <strong class="ml-2">
-                            <a href="/social/profile/${post.username}/" class="text-dark">${post.username}</a>
-                        </strong>
-                    </div>
-                    ${isCurrentUserPost ? `
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="postOptions-${post.id}" data-bs-toggle="dropdown" aria-expanded="false">
-                            Options
+    const isCurrentUserPost = post.username === currentUser;
+    const profileImage = post.profile_image ? post.profile_image : 'https://via.placeholder.com/150';
+    return `
+        <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <img src="${profileImage}" class="rounded-circle" height="40" alt="User Avatar" />
+                    <strong class="ml-2">
+                        <a href="/social/profile/${post.username}/" class="text-dark">${post.username}</a>
+                    </strong>
+                </div>
+                ${isCurrentUserPost ? `
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="postOptions-${post.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                        Options
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="postOptions-${post.id}">
+                        <li><a class="dropdown-item edit-post" href="#" data-post-id="${post.id}">Edit Post</a></li>
+                        <li><a class="dropdown-item toggle-comments" href="#" data-post-id="${post.id}">${post.comments_disabled ? 'Enable Comments' : 'Disable Comments'}</a></li>
+                        <li><a class="dropdown-item delete-post" href="#" data-post-id="${post.id}">Delete</a></li>
+                    </ul>
+                </div>` : ''}
+            </div>
+            <div class="mt-3">
+                ${post.image ? `<img src="${post.image}" alt="Post Image" class="img-fluid post-image" />` : ''}
+                ${post.video ? `<video controls class="img-fluid mt-3 post-video"><source src="${post.video}" type="video/mp4" />Your browser does not support the video tag.</video>` : ''}
+                ${post.youtube_link ? `<iframe width="560" height="315" src="https://www.youtube.com/embed/${post.youtube_link}" frameborder="0" allowfullscreen class="post-youtube-link"></iframe>` : ''}
+                <p class="mt-3 post-text">${post.text}</p>
+                <div class="d-flex justify-content-between mt-2">
+                    <div>
+                        <button class="btn btn-light like-btn ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
+                            <i class="far fa-thumbs-up"></i> Like
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="postOptions-${post.id}">
-                            <li><a class="dropdown-item edit-post" href="#" data-post-id="${post.id}">Edit Post</a></li>
-                            <li><a class="dropdown-item toggle-comments" href="#" data-post-id="${post.id}">${post.comments_disabled ? 'Enable Comments' : 'Disable Comments'}</a></li>
-                            <li><a class="dropdown-item delete-post" href="#" data-post-id="${post.id}">Delete</a></li>
-                        </ul>
-                    </div>` : ''}
-                </div>
-                <div class="mt-3">
-                    ${post.image ? `<img src="${post.image}" alt="Post Image" class="img-fluid post-image" />` : ''}
-                    ${post.video ? `<video controls class="img-fluid mt-3 post-video"><source src="${post.video}" type="video/mp4" />Your browser does not support the video tag.</video>` : ''}
-                    ${post.youtube_link ? `<iframe width="560" height="315" src="https://www.youtube.com/embed/${post.youtube_link}" frameborder="0" allowfullscreen class="post-youtube-link"></iframe>` : ''}
-                    <p class="mt-3 post-text">${post.text}</p>
-                    <div class="d-flex justify-content-between mt-2">
-                        <div>
-                            <button class="btn btn-light like-btn ${post.user_liked ? 'liked' : ''}" data-post-id="${post.id}">
-                                <i class="far fa-thumbs-up"></i> Like
-                            </button>
-                            <a href="/social/post/${post.id}/" class="btn btn-light text-dark ml-2">
-                                <i class="far fa-comment"></i> Comment
-                            </a>
-                        </div>
-                        <small class="text-muted">
-                            Liked by <strong id="last-liked-${post.id}">${post.last_liked_user}</strong> and <strong id="likes-count-${post.id}">${post.likes_count}</strong> others
-                        </small>
+                        <a href="/social/post/${post.id}/" class="btn btn-light text-dark ml-2">
+                            <i class="far fa-comment"></i> Comment
+                        </a>
                     </div>
-                    <div id="comments-${post.id}" class="comments mt-3" ${post.comments_disabled ? 'style="display: none;"' : ''}>
-                        ${post.comments.map(comment => `
-                            <div class="comment mb-2 d-flex" id="comment-${comment.id}">
-                                <img src="${comment.profile_image ? comment.profile_image : 'https://via.placeholder.com/150'}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
-                                <div class="comment-details ml-2">
-                                    <p class="mb-1">
-                                        <strong>
-                                            <a href="/social/profile/${comment.username}/" class="text-dark">${comment.username}</a>
-                                        </strong> ${comment.text}
-                                    </p>
-                                    <small class="text-muted">${comment.created}</small>
-                                    ${comment.user == currentUser ? `<button class="btn btn-danger btn-sm delete-comment" data-comment-id="${comment.id}">Delete</button>` : ''}
-                                </div>
+                    <small class="text-muted">
+                        Liked by <strong id="last-liked-${post.id}">${post.last_liked_user}</strong> and <strong id="likes-count-${post.id}">${post.likes_count}</strong> others
+                    </small>
+                </div>
+                <div id="comments-${post.id}" class="comments mt-3" ${post.comments_disabled ? 'style="display: none;"' : ''}>
+                    ${Array.isArray(post.comments) ? post.comments.map(comment => `
+                        <div class="comment mb-2 d-flex" id="comment-${comment.id}">
+                            <img src="${comment.profile_image ? comment.profile_image : 'https://via.placeholder.com/150'}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
+                            <div class="comment-details ml-2">
+                                <p class="mb-1">
+                                    <strong>
+                                        <a href="/social/profile/${comment.username}/" class="text-dark">${comment.username}</a>
+                                    </strong> ${comment.text}
+                                </p>
+                                <small class="text-muted">${comment.created}</small>
+                                ${comment.user == currentUser ? `<button class="btn btn-danger btn-sm delete-comment" data-comment-id="${comment.id}">Delete</button>` : ''}
                             </div>
-                        `).join('')}
-                        <form method="post" action="/social/post/${post.id}/" class="comment-form mt-2" ${post.comments_disabled ? 'style="display: none;"' : ''}>
-                            <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}" />
-                            <input type="text" name="text" class="form-control" placeholder="Leave a comment" />
-                            <button type="submit" class="btn btn-info ml-2">Post</button>
-                        </form>
-                    </div>
+                        </div>
+                    `).join('') : ''}
+                    <form method="post" action="/social/post/${post.id}/" class="comment-form mt-2" ${post.comments_disabled ? 'style="display: none;"' : ''}>
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}" />
+                        <input type="text" name="text" class="form-control" placeholder="Leave a comment" />
+                        <button type="submit" class="btn btn-info ml-2">Post</button>
+                    </form>
                 </div>
-            </div>`;
-    }
+            </div>
+        </div>`;
+}
 
     // Function to handle like button click
     function handleLikeButtonClick(button) {

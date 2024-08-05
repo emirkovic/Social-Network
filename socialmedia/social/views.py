@@ -418,3 +418,41 @@ def get_notifications(request):
 def clear_notifications(request):
     request.user.notifications.all().delete()
     return JsonResponse({"success": True})
+
+
+@login_required
+def get_followers(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    followers = user.profile.following.all()
+    followers_data = [
+        {
+            "username": follower.username,
+            "profile_image": follower.profile.profile_image.url
+            if follower.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL,
+            "full_name": f"{follower.profile.first_name} {follower.profile.last_name}"
+            if follower.profile.first_name and follower.profile.last_name
+            else "",
+        }
+        for follower in followers
+    ]
+    return JsonResponse({"followers": followers_data})
+
+
+@login_required
+def get_following(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    following = user.profile.following.all()
+    following_data = [
+        {
+            "username": follow.username,
+            "profile_image": follow.profile.profile_image.url
+            if follow.profile.profile_image
+            else PLACEHOLDER_IMAGE_URL,
+            "full_name": f"{follow.profile.first_name} {follow.profile.last_name}"
+            if follow.profile.first_name and follow.profile.last_name
+            else "",
+        }
+        for follow in following
+    ]
+    return JsonResponse({"following": following_data})

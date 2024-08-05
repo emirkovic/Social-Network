@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="d-flex align-items-center">
                             <img src="${notification.profile_image}" class="rounded-circle" height="30" alt="User Avatar" />
                             <div class="ml-2">
-                                <p><strong>${notification.trigger_user}</strong> ${notification.text}</p>
+                                <p><strong><a href="/social/profile/${notification.trigger_user}/">${notification.trigger_user}</a></strong> ${notification.text}</p>
                                 <small>${notification.created}</small>
                             </div>
                             ${notification.type === 'follow' ? `
@@ -91,13 +91,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to update follow buttons
     function updateFollowButtons(userId, isFollow) {
-        const button = document.querySelector(`button[data-user-id='${userId}']`);
-        if (button) {
+        const buttons = document.querySelectorAll(`button[data-user-id='${userId}']`);
+        buttons.forEach(button => {
             button.textContent = isFollow ? "Following" : "Follow";
             button.classList.toggle("following", isFollow);
             button.classList.toggle("btn-primary", !isFollow);
             button.classList.toggle("btn-secondary", isFollow);
-        }
+        });
     }
 
     // Function to remove suggestion
@@ -168,6 +168,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (currentPath.includes('/social/') && !currentPath.includes('/social/profile/')) {
                     if (isFollow) {
                         fetchNewPosts(userId);
+                    } else {
+                        removePostsByIds(data.posts_to_remove);
                     }
                 }
             } else {
@@ -414,6 +416,26 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error toggling comments:', error));
     }
 
+    // Function to remove posts by user
+    function removePostsByUser(userId) {
+        const posts = document.querySelectorAll(`.post`);
+        posts.forEach(post => {
+            if (post.querySelector(`a[href='/social/profile/${userId}/']`)) {
+                post.remove();
+            }
+        });
+    }
+
+    // Function to remove posts by their IDs
+    function removePostsByIds(postIds) {
+        postIds.forEach(postId => {
+            const postElement = document.getElementById(`post-${postId}`);
+            if (postElement) {
+                postElement.remove();
+            }
+        });
+    }
+
     // Function to attach event listeners to new elements
     function attachEventListenersToNewElements() {
         document.querySelectorAll(".follow-btn").forEach(button => {
@@ -624,7 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             video.controls = true;
                             post.insertBefore(video, post.querySelector('.post-youtube-link, .post-text'));
                         }
-                        video.src = data.post.video;
+                        video.querySelector('source').src = data.post.video;
                     } else {
                         const video = post.querySelector('.post-video');
                         if (video) {
@@ -635,11 +657,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         let iframe = post.querySelector('.post-youtube-link');
                         if (!iframe) {
                             iframe = document.createElement('iframe');
-                            iframe.className = 'post-youtube-link';
-                            iframe.width = 560;
-                            iframe.height = 315;
-                            iframe.frameBorder = 0;
+                            iframe.width = '560';
+                            iframe.height = '315';
+                            iframe.frameBorder = '0';
                             iframe.allowFullscreen = true;
+                            iframe.className = 'post-youtube-link';
                             post.insertBefore(iframe, post.querySelector('.post-text'));
                         }
                         iframe.src = `https://www.youtube.com/embed/${data.post.youtube_link}`;
@@ -649,12 +671,18 @@ document.addEventListener("DOMContentLoaded", function () {
                             iframe.remove();
                         }
                     }
-                    showAlert("Post updated successfully.");
+                    editPostForm.reset();
+                    const editPostModal = bootstrap.Modal.getInstance(document.getElementById('editPostModal'));
+                    editPostModal.hide();
+                    showAlert('Post updated successfully.');
                 } else {
-                    showAlert("Failed to update the post.");
+                    showAlert('Failed to update post.');
                 }
             })
-            .catch(error => console.error('Error updating post:', error));
+            .catch(error => {
+                console.error('Error updating post:', error);
+                showAlert('Failed to update post.');
+            });
         });
     }
 });

@@ -105,6 +105,13 @@ class Notification(models.Model):
     created = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
     type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default="like")
+    post = models.ForeignKey(
+        Post,
+        related_name="notifications",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ["-created"]

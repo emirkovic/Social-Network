@@ -215,11 +215,6 @@ body {
     background-color: #f0f8ff;
 }
 
-.notification p {
-    margin: 0;
-    font-size: 14px;
-}
-
 .notification small {
     display: block;
     color: #888888;

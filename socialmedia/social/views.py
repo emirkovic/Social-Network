@@ -48,7 +48,7 @@ def index(request):
         (
             post,
             post.comments.filter(deleted=False).order_by("-created")[:2],
-            post.likes.last().user.username if post.likes.count() > 0 else "",
+            post.likes.last().user.username if post.likes.exists() else "",
         )
         for post in page_obj
     ]
@@ -94,7 +94,7 @@ def follow(request, user_id):
     request.user.profile.following.add(user_to_follow)
     Notification.objects.create(
         user=user_to_follow,
-        text=f"{request.user.username} started following you.",
+        text="started following you.",
         trigger_user=request.user,
         type="follow",
     )
@@ -130,6 +130,9 @@ def unfollow(request, user_id):
     user_to_unfollow = get_object_or_404(User, id=user_id)
     request.user.profile.following.remove(user_to_unfollow)
     followers_count = user_to_unfollow.followers.count()
+    posts_to_remove = list(
+        Post.objects.filter(user=user_to_unfollow).values_list("id", flat=True),
+    )
     suggestions = (
         User.objects.exclude(id=request.user.id)
         .exclude(id__in=request.user.profile.following.all())
@@ -151,6 +154,7 @@ def unfollow(request, user_id):
             "success": True,
             "followers_count": followers_count,
             "suggestions": suggestion_list,
+            "posts_to_remove": posts_to_remove,
         },
     )
 
@@ -173,7 +177,7 @@ def fetch_new_posts(request, user_id):
             "created": post.created.strftime("%b %d, %Y"),
             "likes_count": post.likes.count(),
             "last_liked_user": post.likes.last().user.username
-            if post.likes.count() > 0
+            if post.likes.exists()
             else "",
             "comments": [
                 {
@@ -209,16 +213,17 @@ def detail(request, post_id):
             comment.save()
             Notification.objects.create(
                 user=post.user,
-                text=f"{request.user.username} commented on your post.",
+                text="commented on your post.",
                 trigger_user=request.user,
                 type="comment",
+                post=post,
             )
             return redirect("social:detail", post_id=post_id)
     else:
         comment_form = CommentForm()
 
     comments = post.comments.filter(deleted=False).order_by("-created")
-    last_liked_user = post.likes.last().user.username if post.likes.count() > 0 else ""
+    last_liked_user = post.likes.last().user.username if post.likes.exists() else ""
 
     context = {
         "post_detail": post,
@@ -260,12 +265,14 @@ def like_post(request, post_id):
                 user_liked = False
             else:
                 Like.objects.create(user=user, post=post)
-                Notification.objects.create(
-                    user=post.user,
-                    text=f"{user.username} liked your post.",
-                    trigger_user=user,
-                    type="like",
-                )
+                if post.user != user:
+                    Notification.objects.create(
+                        user=post.user,
+                        text="liked your post.",
+                        trigger_user=user,
+                        type="like",
+                        post=post,
+                    )
                 user_liked = True
 
             total_likes = post.likes.count()
@@ -380,6 +387,7 @@ def get_notifications(request):
             if n.trigger_user.profile.profile_image
             else PLACEHOLDER_IMAGE_URL
         )
+
         notification_data = {
             "text": n.text,
             "created": n.created.strftime("%b %d, %Y"),
@@ -388,7 +396,18 @@ def get_notifications(request):
             "trigger_user": n.trigger_user.username,
             "trigger_user_id": n.trigger_user.id,
             "type": n.type,
+            "is_following": request.user.profile.following.filter(
+                id=n.trigger_user.id,
+            ).exists(),
         }
+
+        if n.type == "like" and n.post:
+            post_likes_count = n.post.likes.count()
+            if post_likes_count > 1:
+                notification_data["text"] = (
+                    f"and {post_likes_count - 1} others liked your post"
+                )
+
         notifications_list.append(notification_data)
 
     return JsonResponse(notifications_list, safe=False)

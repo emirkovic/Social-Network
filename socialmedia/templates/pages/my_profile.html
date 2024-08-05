@@ -1,4 +1,3 @@
-<!-- my_profile.html -->
 {% load static i18n %}
 
 <!DOCTYPE html>
@@ -30,8 +29,9 @@
           {% if user.profile.location %}<p>{{ user.profile.location }}</p>{% endif %}
         </div>
         <div class="profile-stats">
-          <span id="followers-count-{{ user.id }}" class="followers-link">{{ followers_count }} Followers</span>
-          <span id="following-count-{{ user.id }}" class="following-link">{{ following_count }} Following</span>
+          <span>{{ posts.count }} Posts</span>
+          <span id="followers-count-{{ user.id }}">{{ followers_count }} Followers</span>
+          <span id="following-count-{{ user.id }}">{{ following_count }} Following</span>
         </div>
       </div>
       <div class="profile-actions">
@@ -65,45 +65,10 @@
         <img id="modalImage" alt="Modal Image" />
       </div>
     </div>
-    <!-- Modal for Followers and Following -->
-    <div id="followersModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeFollowersModal()">×</span>
-        <input type="text"
-               id="searchFollowers"
-               placeholder="Search followers..."
-               onkeyup="filterFollowers()" />
-        <div id="followersList">
-          <!-- Followers list will be populated here -->
-        </div>
-      </div>
-    </div>
-    <div id="followingModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeFollowingModal()">×</span>
-        <input type="text"
-               id="searchFollowing"
-               placeholder="Search following..."
-               onkeyup="filterFollowing()" />
-        <div id="followingList">
-          <!-- Following list will be populated here -->
-        </div>
-      </div>
-    </div>
     <script src="{% static 'js/project.js' %}"></script>
     <script>
       document.addEventListener('DOMContentLoaded', (event) => {
         document.getElementById("myModal").style.display = "none";
-        document.getElementById("followersModal").style.display = "none";
-        document.getElementById("followingModal").style.display = "none";
-
-        document.querySelector('.followers-link').addEventListener('click', function() {
-          openFollowersModal();
-        });
-
-        document.querySelector('.following-link').addEventListener('click', function() {
-          openFollowingModal();
-        });
       });
 
       function openModal(src) {
@@ -113,98 +78,6 @@
 
       function closeModal() {
         document.getElementById("myModal").style.display = "none";
-      }
-
-      function openFollowersModal() {
-        document.getElementById("followersModal").style.display = "flex";
-        fetchFollowers();
-      }
-
-      function closeFollowersModal() {
-        document.getElementById("followersModal").style.display = "none";
-      }
-
-      function openFollowingModal() {
-        document.getElementById("followingModal").style.display = "flex";
-        fetchFollowing();
-      }
-
-      function closeFollowingModal() {
-        document.getElementById("followingModal").style.display = "none";
-      }
-
-      function fetchFollowers() {
-        fetch('/social/get_followers/{{ user.id }}/')
-          .then(response => response.json())
-          .then(data => {
-            const followersList = document.getElementById('followersList');
-            followersList.innerHTML = '';
-            data.followers.forEach(follower => {
-              followersList.innerHTML += `
-                        <div class="follower-item">
-                            <div class="follower-info">
-                                <img src="${follower.profile_image || 'https://via.placeholder.com/150'}" alt="${follower.username}" />
-                                <div>
-                                    <strong>${follower.username}</strong>
-                                    <span>${follower.full_name}</span>
-                                </div>
-                            </div>
-                            <button class="btn">Remove</button>
-                        </div>`;
-            });
-          });
-      }
-
-      function fetchFollowing() {
-        fetch('/social/get_following/{{ user.id }}/')
-          .then(response => response.json())
-          .then(data => {
-            const followingList = document.getElementById('followingList');
-            followingList.innerHTML = '';
-            data.following.forEach(follow => {
-              followingList.innerHTML += `
-                        <div class="following-item">
-                            <div class="following-info">
-                                <img src="${follow.profile_image || 'https://via.placeholder.com/150'}" alt="${follow.username}" />
-                                <div>
-                                    <strong>${follow.username}</strong>
-                                    <span>${follow.full_name}</span>
-                                </div>
-                            </div>
-                            <button class="btn">Remove</button>
-                        </div>`;
-            });
-          });
-      }
-
-      function filterFollowers() {
-        const searchInput = document.getElementById('searchFollowers');
-        const filter = searchInput.value.toUpperCase();
-        const followersList = document.getElementById('followersList');
-        const followers = followersList.getElementsByClassName('follower-item');
-        for (let i = 0; i < followers.length; i++) {
-          const txtValue = followers[i].textContent || followers[i].innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            followers[i].style.display = "";
-          } else {
-            followers[i].style.display = "none";
-          }
-        }
-      }
-
-      function filterFollowing() {
-        const searchInput = document.getElementById('searchFollowing');
-        const filter = searchInput.value.toUpperCase();
-        const followingList = document.getElementById('followingList');
-        const following = followingList.getElementsByClassName('following-item');
-        for (let i = 0; i < following.length; i++) {
-          const txtValue = following[i].textContent || following[i].innerText;
-          if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            following[i].style.display = "";
-          } else {
-            following[i].style.display = "none";
-          }
-        }
       }
     </script>
   </body>

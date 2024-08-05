@@ -10,8 +10,6 @@ from .views import edit_post
 from .views import fetch_comments
 from .views import fetch_new_posts
 from .views import follow
-from .views import get_followers
-from .views import get_following
 from .views import get_notifications
 from .views import index
 from .views import like_post
@@ -40,6 +38,4 @@ urlpatterns = [
     path("fetch_comments/<int:post_id>/", fetch_comments, name="fetch_comments"),
     path("notifications/", get_notifications, name="get_notifications"),
     path("clear_notifications/", clear_notifications, name="clear_notifications"),
-    path("get_followers/<int:user_id>/", get_followers, name="get_followers"),
-    path("get_following/<int:user_id>/", get_following, name="get_following"),
 ]

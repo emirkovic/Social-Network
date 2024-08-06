@@ -8,6 +8,8 @@ from .views import detail
 from .views import disable_comments
 from .views import edit_post
 from .views import fetch_comments
+from .views import fetch_followers
+from .views import fetch_following
 from .views import fetch_new_posts
 from .views import follow
 from .views import get_notifications
@@ -27,6 +29,8 @@ urlpatterns = [
     path("settings/", settings_view, name="settings"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("profile/<str:username>/", my_profile, name="my_profile"),
+    path("profile/<str:username>/followers/", fetch_followers, name="fetch_followers"),
+    path("profile/<str:username>/following/", fetch_following, name="fetch_following"),
     path("follow/<int:user_id>/", follow, name="follow"),
     path("unfollow/<int:user_id>/", unfollow, name="unfollow"),
     path("search/", search_users, name="search_users"),

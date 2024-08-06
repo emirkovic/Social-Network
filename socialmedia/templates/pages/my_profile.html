@@ -30,8 +30,8 @@
         </div>
         <div class="profile-stats">
           <span>{{ posts.count }} Posts</span>
-          <span id="followers-count-{{ user.id }}">{{ followers_count }} Followers</span>
-          <span id="following-count-{{ user.id }}">{{ following_count }} Following</span>
+          <span id="followers-count-{{ user.id }}" class="follower-link">{{ followers_count }} Followers</span>
+          <span id="following-count-{{ user.id }}" class="following-link">{{ following_count }} Following</span>
         </div>
       </div>
       <div class="profile-actions">
@@ -59,6 +59,18 @@
         {% endfor %}
       </div>
     </div>
+    <div id="followModal" class="modal">
+      <span class="close" onclick="closeFollowModal()">×</span>
+      <div class="modal-content">
+        <div id="modalTitle">Followers</div>
+        <input type="text"
+               id="searchBar"
+               placeholder="Search"
+               onkeyup="filterList()" />
+        <ul id="followList">
+        </ul>
+      </div>
+    </div>
     <div id="myModal" class="modal">
       <span class="close" onclick="closeModal()">×</span>
       <div class="modal-content">
@@ -69,6 +81,15 @@
     <script>
       document.addEventListener('DOMContentLoaded', (event) => {
         document.getElementById("myModal").style.display = "none";
+        document.getElementById("followModal").style.display = "none";
+
+        document.querySelector('.follower-link').addEventListener('click', function() {
+          fetchFollowers('{{ user.username }}');
+        });
+
+        document.querySelector('.following-link').addEventListener('click', function() {
+          fetchFollowing('{{ user.username }}');
+        });
       });
 
       function openModal(src) {
@@ -78,6 +99,56 @@
 
       function closeModal() {
         document.getElementById("myModal").style.display = "none";
+      }
+
+      function openFollowModal(title, list) {
+        document.getElementById("modalTitle").innerHTML = title;
+        document.getElementById("followList").innerHTML = list.map(user => `
+          <li class="follow-item">
+            <img src="${user.profile_image}" alt="${user.username}'s profile picture" class="profile-pic" />
+            <div class="user-info">
+              <a href="/social/profile/${user.username}/" class="username">${user.username}</a>
+              <p>${user.full_name}</p>
+            </div>
+          </li>
+        `).join('');
+        document.getElementById("followModal").style.display = "flex";
+      }
+
+      function closeFollowModal() {
+        document.getElementById("followModal").style.display = "none";
+      }
+
+      function fetchFollowers(username) {
+        fetch(`/social/profile/${username}/followers/`)
+          .then(response => response.json())
+          .then(data => {
+            openFollowModal('Followers', data.followers);
+          });
+      }
+
+      function fetchFollowing(username) {
+        fetch(`/social/profile/${username}/following/`)
+          .then(response => response.json())
+          .then(data => {
+            openFollowModal('Following', data.following);
+          });
+      }
+
+      function filterList() {
+        const searchInput = document.getElementById('searchBar').value.toLowerCase();
+        const followItems = document.querySelectorAll('.follow-item');
+
+        followItems.forEach(item => {
+          const username = item.querySelector('.username').innerText.toLowerCase();
+          const fullName = item.querySelector('.user-info p').innerText.toLowerCase();
+
+          if (username.includes(searchInput) || fullName.includes(searchInput)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
       }
     </script>
   </body>

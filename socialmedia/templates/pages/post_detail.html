@@ -187,10 +187,9 @@
                   </strong>
                 </div>
                 <div class="dropdown">
-                  <div class="three-dots"
-                       id="postOptions-{{ post_detail.id }}"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="false"></div>
+                  <a href="{% url 'social:index' %}" class="left-arrow">
+                    <i class="fas fa-arrow-left"></i>
+                  </a>
                 </div>
               </div>
               {% if post_detail.image %}

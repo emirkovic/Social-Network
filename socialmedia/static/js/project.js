@@ -1,13 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]") ? document.querySelector("[name=csrfmiddlewaretoken]").value : null;
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value || null;
     const currentPath = window.location.pathname;
+
+    let isFetching = false;
 
     // Function to show alert messages
     function showAlert(message) {
         const alertBox = document.getElementById("customAlert");
         if (alertBox) {
-            const alertMessage = document.getElementById("alertMessage");
-            alertMessage.textContent = message;
+            document.getElementById("alertMessage").textContent = message;
             alertBox.style.display = "block";
         }
     }
@@ -24,8 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const notificationsContent = document.getElementById("notifications-content");
-                notificationsContent.innerHTML = '';
+                document.getElementById("notifications-content").innerHTML = '';
             } else {
                 console.error("Failed to clear notifications. Please try again.");
             }
@@ -34,27 +34,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Attach the event listener for the "Clear all" text
-    const clearNotifications = document.getElementById("clear-notifications");
-    if (clearNotifications) {
-        clearNotifications.addEventListener("click", function () {
-            handleClearNotifications();
-        });
-    }
+    document.getElementById("clear-notifications")?.addEventListener("click", handleClearNotifications);
 
     // Function to fetch notifications
     function fetchNotifications() {
         fetch('/social/notifications/')
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 const notificationsContent = document.getElementById('notifications-content');
                 notificationsContent.innerHTML = '';
                 data.forEach(notification => {
                     const notificationElement = document.createElement('div');
-                    notificationElement.classList.add('notification');
-                    if (!notification.is_read) {
-                        notificationElement.classList.add('new');
-                    }
+                    notificationElement.classList.add('notification', !notification.is_read && 'new');
                     notificationElement.innerHTML = `
                         <div class="d-flex align-items-center">
                             <img src="${notification.profile_image}" class="rounded-circle" height="30" alt="User Avatar" />
@@ -62,37 +53,31 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <p><strong><a href="/social/profile/${notification.trigger_user}/">${notification.trigger_user}</a></strong> ${notification.text}</p>
                                 <small>${notification.created}</small>
                             </div>
-                            ${notification.type === 'follow' ? `
-                                <div class="follow-text">
+                            ${notification.type === 'follow' ?
+                                `<div class="follow-text">
                                     <button class="btn ${notification.is_following ? 'btn-secondary following' : 'btn-primary'} follow-btn" data-user-id="${notification.trigger_user_id}">
                                         ${notification.is_following ? 'Following' : 'Follow'}
                                     </button>
                                 </div>` : ''}
-                        </div>
-                    `;
+                        </div>`;
                     notificationsContent.appendChild(notificationElement);
                 });
-                attachEventListenersToFollowButtons();
             })
             .catch(error => console.error('Error fetching notifications:', error));
     }
 
     // Attach event listener to notifications icon
-    const notificationsIcon = document.getElementById('notifications-icon');
-    const notificationsPanel = document.getElementById('notifications-panel');
-    if (notificationsIcon) {
-        notificationsIcon.addEventListener('click', function () {
-            notificationsPanel.classList.toggle('show');
-            if (notificationsPanel.classList.contains('show')) {
-                fetchNotifications();
-            }
-        });
-    }
+    document.getElementById('notifications-icon')?.addEventListener('click', function () {
+        const notificationsPanel = document.getElementById('notifications-panel');
+        notificationsPanel.classList.toggle('show');
+        if (notificationsPanel.classList.contains('show')) {
+            fetchNotifications();
+        }
+    });
 
     // Function to update follow buttons
     function updateFollowButtons(userId, isFollow) {
-        const buttons = document.querySelectorAll(`button[data-user-id='${userId}']`);
-        buttons.forEach(button => {
+        document.querySelectorAll(`button[data-user-id='${userId}']`).forEach(button => {
             button.textContent = isFollow ? "Following" : "Follow";
             button.classList.toggle("following", isFollow);
             button.classList.toggle("btn-primary", !isFollow);
@@ -102,10 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to remove suggestion
     function removeSuggestion(userId) {
-        const suggestionItem = document.getElementById(`suggestion-${userId}`);
-        if (suggestionItem) {
-            suggestionItem.remove();
-        }
+        document.getElementById(`suggestion-${userId}`)?.remove();
     }
 
     // Function to update followers count
@@ -125,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         suggestionsList.innerHTML = "";
         suggestions.forEach(suggestion => {
-            const profileImage = suggestion.profile_image ? suggestion.profile_image : 'https://via.placeholder.com/150';
+            const profileImage = suggestion.profile_image || 'https://via.placeholder.com/150';
             const suggestionItem = `
                 <div class="suggestion-item" id="suggestion-${suggestion.id}">
                     <img src="${profileImage}" class="rounded-circle" height="40" alt="User Avatar" />
@@ -140,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>`;
             suggestionsList.insertAdjacentHTML("beforeend", suggestionItem);
         });
-        attachEventListenersToNewElements();
     }
 
     // Function to handle follow/unfollow
@@ -180,11 +161,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to fetch new posts
     function fetchNewPosts(userId) {
-        console.log("fetchNewPosts called on path:", currentPath);
+        if (isFetching) return;
+        isFetching = true;
+
         if (currentPath.includes('/social/profile/') && !currentPath.includes('/social/')) {
-            console.log("Skipping fetchNewPosts on my_profile page");
+            isFetching = false;
             return;
         }
+
         fetch(`/social/fetch_new_posts/${userId}/`)
         .then(response => response.json())
         .then(data => {
@@ -195,18 +179,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         const postHtml = createPostHtml(post);
                         postsContainer.insertAdjacentHTML("afterbegin", postHtml);
                     });
-                    attachEventListenersToNewElements();
                 }
             }
+            isFetching = false;
         })
-        .catch(error => console.error('Error fetching new posts:', error));
+        .catch(error => {
+            console.error('Error fetching new posts:', error);
+            isFetching = false;
+        });
     }
 
     // Function to create post HTML
     function createPostHtml(post) {
         const currentUser = "{{ user.username }}";
         const isCurrentUserPost = post.username === currentUser;
-        const profileImage = post.profile_image ? post.profile_image : 'https://via.placeholder.com/150';
+        const profileImage = post.profile_image || 'https://via.placeholder.com/150';
         return `
             <div class="post mt-4 p-3 bg-light rounded" id="post-${post.id}">
                 <div class="d-flex align-items-center justify-content-between">
@@ -216,8 +203,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             <a href="/social/profile/${post.username}/" class="text-dark">${post.username}</a>
                         </strong>
                     </div>
-                    ${isCurrentUserPost ? `
-                    <div class="dropdown">
+                    ${isCurrentUserPost ?
+                    `<div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="postOptions-${post.id}" data-bs-toggle="dropdown" aria-expanded="false">
                             Options
                         </button>
@@ -247,9 +234,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         </small>
                     </div>
                     <div id="comments-${post.id}" class="comments mt-3" ${post.comments_disabled ? 'style="display: none;"' : ''}>
-                        ${post.comments.map(comment => `
-                            <div class="comment mb-2 d-flex" id="comment-${comment.id}">
-                                <img src="${comment.profile_image ? comment.profile_image : 'https://via.placeholder.com/150'}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
+                        ${post.comments.map(comment =>
+                            `<div class="comment mb-2 d-flex" id="comment-${comment.id}">
+                                <img src="${comment.profile_image || 'https://via.placeholder.com/150'}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
                                 <div class="comment-details ml-2">
                                     <p class="mb-1">
                                         <strong>
@@ -259,8 +246,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <small class="text-muted">${comment.created}</small>
                                     ${comment.user == currentUser ? `<button class="btn btn-danger btn-sm delete-comment" data-comment-id="${comment.id}">Delete</button>` : ''}
                                 </div>
-                            </div>
-                        `).join('')}
+                            </div>`
+                        ).join('')}
                         <form method="post" action="/social/post/${post.id}/" class="comment-form mt-2" ${post.comments_disabled ? 'style="display: none;"' : ''}>
                             <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}" />
                             <input type="text" name="text" class="form-control" placeholder="Leave a comment" />
@@ -285,8 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.json())
         .then(data => {
             if (data.total_likes !== undefined) {
-                const buttons = document.querySelectorAll(`.like-btn[data-post-id='${postId}']`);
-                buttons.forEach(btn => {
+                document.querySelectorAll(`.like-btn[data-post-id='${postId}']`).forEach(btn => {
                     btn.classList.toggle("liked", data.user_liked);
                     btn.querySelector("i").classList.toggle("fas", data.user_liked);
                     btn.querySelector("i").classList.toggle("far", !data.user_liked);
@@ -346,9 +332,9 @@ document.addEventListener("DOMContentLoaded", function () {
     function openEditPostModal(postId) {
         const post = document.getElementById(`post-${postId}`);
         const text = post.querySelector('.post-text').innerText;
-        const image = post.querySelector('.post-image') ? post.querySelector('.post-image').src : '';
-        const video = post.querySelector('.post-video') ? post.querySelector('.post-video').src : '';
-        const youtubeLink = post.querySelector('.post-youtube-link') ? post.querySelector('.post-youtube-link').src : '';
+        const image = post.querySelector('.post-image')?.src || '';
+        const video = post.querySelector('.post-video')?.src || '';
+        const youtubeLink = post.querySelector('.post-youtube-link')?.src || '';
 
         document.getElementById('editPostId').value = postId;
         document.getElementById('editPostText').value = text;
@@ -362,8 +348,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to handle edit post
     function handleEditPost(button) {
-        const postId = button.dataset.postId;
-        openEditPostModal(postId);
+        openEditPostModal(button.dataset.postId);
     }
 
     // Function to handle toggle comments
@@ -383,18 +368,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 const newState = data.comments_disabled ? "Enable Comments" : "Disable Comments";
                 button.textContent = newState;
                 const commentsSection = document.getElementById(`comments-${postId}`);
-                if (data.comments_disabled) {
-                    commentsSection.style.display = 'none';
-                    showAlert("Comments have been disabled for this post.");
-                } else {
-                    commentsSection.style.display = 'block';
+                commentsSection.style.display = data.comments_disabled ? 'none' : 'block';
+                if (!data.comments_disabled) {
                     fetch(`/social/fetch_comments/${postId}/`)
                         .then(response => response.json())
                         .then(comments => {
                             const commentsContainer = document.getElementById(`comments-${postId}`);
-                            commentsContainer.innerHTML = comments.map(comment => `
-                                <div class="comment mb-2 d-flex" id="comment-${comment.id}">
-                                    <img src="${comment.profile_image ? comment.profile_image : 'https://via.placeholder.com/150'}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
+                            commentsContainer.innerHTML = comments.map(comment =>
+                                `<div class="comment mb-2 d-flex" id="comment-${comment.id}">
+                                    <img src="${comment.profile_image || 'https://via.placeholder.com/150'}" alt="Profile Picture" class="rounded-circle comment-img" height="30" />
                                     <div class="comment-details ml-2">
                                         <p class="mb-1">
                                             <strong>
@@ -403,12 +385,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                         </p>
                                         <small class="text-muted">${comment.created}</small>
                                     </div>
-                                </div>
-                            `).join('');
-                            attachEventListenersToNewElements();
+                                </div>`
+                            ).join('');
                         });
-                    showAlert("Comments have been enabled for this post.");
                 }
+                showAlert(`Comments have been ${data.comments_disabled ? 'disabled' : 'enabled'} for this post.`);
             } else {
                 showAlert("An error occurred. Please try again.");
             }
@@ -416,105 +397,31 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error toggling comments:', error));
     }
 
-    // Function to remove posts by user
-    function removePostsByUser(userId) {
-        const posts = document.querySelectorAll(`.post`);
-        posts.forEach(post => {
-            if (post.querySelector(`a[href='/social/profile/${userId}/']`)) {
-                post.remove();
-            }
-        });
-    }
-
     // Function to remove posts by their IDs
     function removePostsByIds(postIds) {
-        postIds.forEach(postId => {
-            const postElement = document.getElementById(`post-${postId}`);
-            if (postElement) {
-                postElement.remove();
-            }
-        });
+        postIds.forEach(postId => document.getElementById(`post-${postId}`)?.remove());
     }
 
-    // Function to attach event listeners to new elements
-    function attachEventListenersToNewElements() {
-        document.querySelectorAll(".follow-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                handleFollowUnfollow(button);
-            });
-        });
-
-        document.querySelectorAll(".like-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                handleLikeButtonClick(button);
-            });
-        });
-
-        document.querySelectorAll(".delete-comment").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                handleDeleteComment(button);
-            });
-        });
-
-        document.querySelectorAll(".delete-post").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                handleDeletePost(button);
-            });
-        });
-
-        document.querySelectorAll(".comment-form").forEach(form => {
-            form.addEventListener("submit", function (event) {
-                const textField = form.querySelector("input[name='text']");
-                const maxWords = 10;
-                const maxChars = 20;
-                const words = textField.value.trim().split(/\s+/);
-                const chars = textField.value.trim().length;
-
-                if (words.length > maxWords) {
-                    event.preventDefault();
-                    showAlert(`This field cannot contain more than ${maxWords} words.`);
-                } else if (chars > maxChars) {
-                    event.preventDefault();
-                    showAlert(`This field cannot contain more than ${maxChars} characters.`);
-                } else if (!textField.value.trim()) {
-                    event.preventDefault();
-                    showAlert("You need to insert a comment");
-                }
-                if (form.closest('.post').querySelector('.toggle-comments').textContent.includes('Enable Comments')) {
-                    event.preventDefault();
-                    showAlert("Comments have been disabled for this post.");
-                }
-            });
-        });
-
-        document.querySelectorAll(".edit-post").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                handleEditPost(button);
-            });
-        });
-
-        document.querySelectorAll(".toggle-comments").forEach(button => {
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                handleToggleComments(button);
-            });
-        });
-    }
-
-    // Attach event listeners to follow buttons in notifications
-    function attachEventListenersToFollowButtons() {
-        document.querySelectorAll(".follow-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                handleFollowUnfollow(button);
-            });
-        });
-    }
-
-    // Initial attachment of event listeners to elements
-    attachEventListenersToNewElements();
+    // Event delegation for dynamically added elements
+    document.body.addEventListener("click", function (event) {
+        if (event.target.matches(".follow-btn")) {
+            handleFollowUnfollow(event.target);
+        } else if (event.target.matches(".like-btn")) {
+            handleLikeButtonClick(event.target);
+        } else if (event.target.matches(".delete-comment")) {
+            event.preventDefault();
+            handleDeleteComment(event.target);
+        } else if (event.target.matches(".delete-post")) {
+            event.preventDefault();
+            handleDeletePost(event.target);
+        } else if (event.target.matches(".edit-post")) {
+            event.preventDefault();
+            handleEditPost(event.target);
+        } else if (event.target.matches(".toggle-comments")) {
+            event.preventDefault();
+            handleToggleComments(event.target);
+        }
+    });
 
     // Handling post form submission
     const postForm = document.getElementById("postForm");
@@ -535,7 +442,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else if (chars > maxChars) {
                 event.preventDefault();
                 showAlert(`This field cannot contain more than ${maxChars} characters.`);
-            } else if (!textField.value.trim() || (!imageField.files.length && !videoField.files.length && !youtubeLinkField.value.trim())) {
+            } else if (!textField.value.trim() && !imageField.files.length && !videoField.files.length && !youtubeLinkField.value.trim()) {
                 event.preventDefault();
                 showAlert("You must provide text, an image, a video, or a YouTube link.");
             }
@@ -543,24 +450,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Toggle visibility of post form
-    const uploadBtn = document.getElementById("uploadBtn");
-    if (uploadBtn) {
-        uploadBtn.addEventListener("click", function () {
-            const postForm = document.getElementById("postForm");
-            postForm.style.display = postForm.style.display === "block" ? "none" : "block";
-        });
-    }
+    document.getElementById("uploadBtn")?.addEventListener("click", function () {
+        const postForm = document.getElementById("postForm");
+        postForm.style.display = postForm.style.display === "block" ? "none" : "block";
+    });
 
     // Toggle visibility of suggestions list
-    const seeAllBtn = document.getElementById("seeAllBtn");
-    if (seeAllBtn) {
-        seeAllBtn.addEventListener("click", function () {
-            const suggestionsList = document.getElementById("suggestionsList");
-            suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
-        });
+    document.getElementById("seeAllBtn")?.addEventListener("click", function () {
+        const suggestionsList = document.getElementById("suggestionsList");
+        suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
+    });
+
+    // Handle search input and results dropdown with debounce
+    function debounce(func, delay) {
+        let debounceTimer;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+        }
     }
 
-    // Handle search input and results dropdown
     const searchInput = document.getElementById('searchInput');
     const searchResultsDropdown = document.createElement('div');
     searchResultsDropdown.id = 'searchResultsDropdown';
@@ -568,7 +479,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (searchInput) {
         searchInput.parentNode.appendChild(searchResultsDropdown);
 
-        searchInput.addEventListener('input', function () {
+        searchInput.addEventListener('input', debounce(function () {
             const query = searchInput.value;
             if (query.length > 2) {
                 fetch(`/social/search/?q=${query}`, {
@@ -595,7 +506,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 searchResultsDropdown.style.display = 'none';
             }
-        });
+        }, 300));
 
         document.addEventListener('click', function (event) {
             if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
@@ -672,8 +583,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                     }
                     editPostForm.reset();
-                    const editPostModal = bootstrap.Modal.getInstance(document.getElementById('editPostModal'));
-                    editPostModal.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('editPostModal')).hide();
                     showAlert('Post updated successfully.');
                 } else {
                     showAlert('Failed to update post.');

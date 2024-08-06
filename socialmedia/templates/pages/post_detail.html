@@ -42,7 +42,7 @@
               <div class="col-md-1"></div>
               <div class="col-md-2">
                 <a class="navbar-brand" href="{% url 'social:index' %}">
-                  <img src="{% static 'images/Logo.png' %}"
+                  <img src="{% static 'images/logo.png' %}"
                        alt="Profile Picture"
                        height="30"
                        class="me-2" />
@@ -195,11 +195,6 @@
                       aria-labelledby="postOptions-{{ post_detail.id }}">
                     {% if post_detail.user == request.user %}
                       <li>
-                        <a class="dropdown-item edit-post"
-                           href="#"
-                           data-post-id="{{ post_detail.id }}">Edit Post</a>
-                      </li>
-                      <li>
                         <a class="dropdown-item toggle-comments"
                            href="#"
                            data-post-id="{{ post_detail.id }}">
@@ -209,11 +204,6 @@
                             Disable Comments
                           {% endif %}
                         </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item delete-post"
-                           href="#"
-                           data-post-id="{{ post_detail.id }}">Delete</a>
                       </li>
                     {% endif %}
                   </ul>
@@ -294,49 +284,6 @@
                 <button type="submit" class="btn btn-info ml-2">Post</button>
               </form>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Edit Post Modal -->
-    <div class="modal fade"
-         id="editPostModal"
-         tabindex="-1"
-         aria-labelledby="editPostModalLabel"
-         aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="editPostModalLabel">Edit Post</h5>
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="editPostForm">
-              <input type="hidden" name="post_id" id="editPostId" />
-              <div class="mb-3">
-                <label for="editPostText" class="form-label">Text</label>
-                <textarea class="form-control" id="editPostText" name="text" rows="3" required></textarea>
-              </div>
-              <div class="mb-3">
-                <label for="editPostImage" class="form-label">Image</label>
-                <input type="file" class="form-control" id="editPostImage" name="image" />
-              </div>
-              <div class="mb-3">
-                <label for="editPostVideo" class="form-label">Video</label>
-                <input type="file" class="form-control" id="editPostVideo" name="video" />
-              </div>
-              <div class="mb-3">
-                <label for="editPostYoutubeLink" class="form-label">YouTube Link</label>
-                <input type="url"
-                       class="form-control"
-                       id="editPostYoutubeLink"
-                       name="youtube_link" />
-              </div>
-              <button type="submit" class="btn btn-primary">Save changes</button>
-            </form>
           </div>
         </div>
       </div>

@@ -42,7 +42,7 @@
               <div class="col-md-1"></div>
               <div class="col-md-2">
                 <a class="navbar-brand" href="{% url 'social:index' %}">
-                  <img src="{% static 'images/logo.png' %}"
+                  <img src="{% static 'images/Logo.png' %}"
                        alt="Profile Picture"
                        height="30"
                        class="me-2" />
@@ -191,22 +191,6 @@
                        id="postOptions-{{ post_detail.id }}"
                        data-bs-toggle="dropdown"
                        aria-expanded="false"></div>
-                  <ul class="dropdown-menu"
-                      aria-labelledby="postOptions-{{ post_detail.id }}">
-                    {% if post_detail.user == request.user %}
-                      <li>
-                        <a class="dropdown-item toggle-comments"
-                           href="#"
-                           data-post-id="{{ post_detail.id }}">
-                          {% if post_detail.comments_disabled %}
-                            Enable Comments
-                          {% else %}
-                            Disable Comments
-                          {% endif %}
-                        </a>
-                      </li>
-                    {% endif %}
-                  </ul>
                 </div>
               </div>
               {% if post_detail.image %}

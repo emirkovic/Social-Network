@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]")?.value || null;
     const currentPath = window.location.pathname;
 
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Attach event listener to notifications icon
-    document.getElementById('notifications-icon')?.addEventListener('click', function () {
+    document.getElementById('notifications-icon')?.addEventListener('click', function() {
         const notificationsPanel = document.getElementById('notifications-panel');
         notificationsPanel.classList.toggle('show');
         if (notificationsPanel.classList.contains('show')) {
@@ -403,7 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Event delegation for dynamically added elements
-    document.body.addEventListener("click", function (event) {
+    document.body.addEventListener("click", function(event) {
         if (event.target.matches(".follow-btn")) {
             handleFollowUnfollow(event.target);
         } else if (event.target.matches(".like-btn")) {
@@ -420,13 +420,19 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (event.target.matches(".toggle-comments")) {
             event.preventDefault();
             handleToggleComments(event.target);
+        } else if (event.target.matches(".user-item")) {
+            handleUserItemClick(event.target);
+        } else if (event.target.matches(".message-action-copy")) {
+            handleCopyMessage(event.target);
+        } else if (event.target.matches(".message-action-delete")) {
+            handleDeleteMessage(event.target);
         }
     });
 
     // Handling post form submission
     const postForm = document.getElementById("postForm");
     if (postForm) {
-        postForm.addEventListener("submit", function (event) {
+        postForm.addEventListener("submit", function(event) {
             const textField = document.querySelector("textarea[name='text']");
             const imageField = document.querySelector("input[name='image']");
             const videoField = document.querySelector("input[name='video']");
@@ -450,13 +456,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Toggle visibility of post form
-    document.getElementById("uploadBtn")?.addEventListener("click", function () {
+    document.getElementById("uploadBtn")?.addEventListener("click", function() {
         const postForm = document.getElementById("postForm");
         postForm.style.display = postForm.style.display === "block" ? "none" : "block";
     });
 
     // Toggle visibility of suggestions list
-    document.getElementById("seeAllBtn")?.addEventListener("click", function () {
+    document.getElementById("seeAllBtn")?.addEventListener("click", function() {
         const suggestionsList = document.getElementById("suggestionsList");
         suggestionsList.style.display = suggestionsList.style.display === "block" ? "none" : "block";
     });
@@ -479,7 +485,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (searchInput) {
         searchInput.parentNode.appendChild(searchResultsDropdown);
 
-        searchInput.addEventListener('input', debounce(function () {
+        searchInput.addEventListener('input', debounce(function() {
             const query = searchInput.value;
             if (query.length > 2) {
                 fetch(`/social/search/?q=${query}`, {
@@ -508,7 +514,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }, 300));
 
-        document.addEventListener('click', function (event) {
+        document.addEventListener('click', function(event) {
             if (!searchInput.contains(event.target) && !searchResultsDropdown.contains(event.target)) {
                 searchResultsDropdown.style.display = 'none';
             }
@@ -518,7 +524,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Handle edit post form submission
     const editPostForm = document.getElementById('editPostForm');
     if (editPostForm) {
-        editPostForm.addEventListener('submit', function (event) {
+        editPostForm.addEventListener('submit', function(event) {
             event.preventDefault();
             const postId = document.getElementById('editPostId').value;
             const formData = new FormData(editPostForm);
@@ -594,5 +600,129 @@ document.addEventListener("DOMContentLoaded", function () {
                 showAlert('Failed to update post.');
             });
         });
+    }
+
+    // Function to handle user item click
+    function handleUserItemClick(userItem) {
+        const userId = userItem.dataset.userId;
+        const username = userItem.textContent.trim();
+        const profileImageSrc = userItem.querySelector(".profile-image").src;
+
+        document.getElementById("chat-profile-image").src = profileImageSrc;
+        document.getElementById("chat-username").textContent = username;
+        document.getElementById("message-form").dataset.userId = userId;
+
+        fetchMessages(userId);
+    }
+
+    // Function to fetch messages
+    function fetchMessages(userId) {
+        fetch(`/social/get_messages/${userId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const messagesContainer = document.getElementById("messages");
+                messagesContainer.innerHTML = "";
+                data.messages.forEach(message => {
+                    const messageHtml = createMessageHtml(message);
+                    messagesContainer.insertAdjacentHTML("beforeend", messageHtml);
+                });
+            })
+            .catch(error => console.error('Error fetching messages:', error));
+    }
+
+    // Function to create message HTML
+    function createMessageHtml(message) {
+        return `
+            <div class="message ${message.is_sender ? 'sent' : 'received'}">
+                <p>${message.text}</p>
+                ${message.image ? `<img src="${message.image}" alt="Image" />` : ''}
+                <div class="message-actions">
+                    <span class="action message-action-copy" data-message-id="${message.id}">Copy</span>
+                    <span class="action message-action-delete" data-message-id="${message.id}">Delete</span>
+                </div>
+            </div>`;
+    }
+
+    // Handling message form submission
+    const messageForm = document.getElementById("message-form");
+    if (messageForm) {
+        messageForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const userId = messageForm.dataset.userId;
+            const text = document.getElementById("message-input").value;
+            const imageInput = document.getElementById("image-input");
+            const formData = new FormData();
+            formData.append("text", text);
+            if (imageInput.files.length > 0) {
+                formData.append("image", imageInput.files[0]);
+            }
+
+            fetch(`/social/send_message/${userId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const messagesContainer = document.getElementById("messages");
+                    const messageHtml = createMessageHtml(data.message);
+                    messagesContainer.insertAdjacentHTML("beforeend", messageHtml);
+                    messageForm.reset();
+                } else {
+                    showAlert("Failed to send message.");
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                showAlert("Failed to send message.");
+            });
+        });
+    }
+
+    // Function to handle copy message
+    function handleCopyMessage(copyButton) {
+        const messageId = copyButton.dataset.messageId;
+
+        fetch(`/social/copy_message/${messageId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert("Message copied.");
+            } else {
+                showAlert("Failed to copy message.");
+            }
+        })
+        .catch(error => console.error('Error copying message:', error));
+    }
+
+    // Function to handle delete message
+    function handleDeleteMessage(deleteButton) {
+        const messageId = deleteButton.dataset.messageId;
+
+        if (confirm("Are you sure you want to delete this message?")) {
+            fetch(`/social/delete_message/${messageId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector(`.message [data-message-id='${messageId}']`).closest('.message').remove();
+                } else {
+                    showAlert("Failed to delete message.");
+                }
+            })
+            .catch(error => console.error('Error deleting message:', error));
+        }
     }
 });

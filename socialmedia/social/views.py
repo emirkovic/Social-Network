@@ -14,6 +14,7 @@ from .forms import PostForm
 from .forms import UserProfileForm
 from .models import Comment
 from .models import Like
+from .models import Message
 from .models import Notification
 from .models import Post
 from .models import User
@@ -460,3 +461,71 @@ def fetch_following(request, username):
         for following in user.profile.following.all()
     ]
     return JsonResponse({"following": following})
+
+
+@login_required
+def chat(request):
+    following_users = request.user.profile.following.all()
+    context = {
+        "following_users": following_users,
+    }
+    return render(request, "pages/chat.html", context)
+
+
+@login_required
+@require_POST
+def send_message(request, user_id):
+    recipient = get_object_or_404(User, id=user_id)
+    text = request.POST.get("text", "")
+    image = request.FILES.get("image")
+
+    message = Message.objects.create(
+        user=request.user,
+        recipient=recipient,
+        text=text,
+        image=image,
+    )
+
+    message_data = {
+        "id": message.id,
+        "text": message.text,
+        "image": message.image.url if message.image else "",
+    }
+
+    return JsonResponse({"success": True, "message": message_data})
+
+
+@login_required
+def get_messages(request, user_id):
+    recipient = get_object_or_404(User, id=user_id)
+    messages = Message.objects.filter(
+        (Q(user=request.user) & Q(recipient=recipient))
+        | (Q(user=recipient) & Q(recipient=request.user)),
+    ).order_by("created")
+
+    messages_data = [
+        {
+            "id": message.id,
+            "text": message.text,
+            "image": message.image.url if message.image else "",
+            "is_sender": message.user == request.user,
+        }
+        for message in messages
+    ]
+
+    return JsonResponse({"messages": messages_data})
+
+
+@login_required
+@require_POST
+def delete_message(request, message_id):
+    message = get_object_or_404(Message, id=message_id, user=request.user)
+    message.delete()
+    return JsonResponse({"success": True})
+
+
+@login_required
+@require_POST
+def copy_message(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    return JsonResponse({"success": True, "message_text": message.text})

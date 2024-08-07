@@ -1,8 +1,11 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from .views import chat
 from .views import clear_notifications
+from .views import copy_message
 from .views import delete_comment
+from .views import delete_message
 from .views import delete_post
 from .views import detail
 from .views import disable_comments
@@ -12,11 +15,13 @@ from .views import fetch_followers
 from .views import fetch_following
 from .views import fetch_new_posts
 from .views import follow
+from .views import get_messages
 from .views import get_notifications
 from .views import index
 from .views import like_post
 from .views import my_profile
 from .views import search_users
+from .views import send_message
 from .views import settings_view
 from .views import unfollow
 
@@ -42,4 +47,9 @@ urlpatterns = [
     path("fetch_comments/<int:post_id>/", fetch_comments, name="fetch_comments"),
     path("notifications/", get_notifications, name="get_notifications"),
     path("clear_notifications/", clear_notifications, name="clear_notifications"),
+    path("chat/", chat, name="chat"),
+    path("send_message/<int:user_id>/", send_message, name="send_message"),
+    path("get_messages/<int:user_id>/", get_messages, name="get_messages"),
+    path("delete_message/<int:message_id>/", delete_message, name="delete_message"),
+    path("copy_message/<int:message_id>/", copy_message, name="copy_message"),
 ]

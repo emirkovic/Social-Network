@@ -120,6 +120,22 @@ class Notification(models.Model):
         return f"Notification for {self.user.username}: {self.text}"
 
 
+class Message(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipient = models.ForeignKey(
+        User,
+        related_name="received_messages",
+        on_delete=models.CASCADE,
+        default=1,
+    )
+    text = models.TextField(blank=True)
+    image = models.ImageField(upload_to="messages/images/", blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.user.username} to {self.recipient.username}"
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

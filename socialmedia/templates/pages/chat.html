@@ -1,9 +1,45 @@
-{% extends "base.html" %}
+{% load static cms_tags %}
 
-{% block content %}
-  <div class="container">
-    <h2>Chat</h2>
-    <!-- Dummy content, replace with actual logic -->
-    <p>Welcome to the chat!</p>
-  </div>
-{% endblock content %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat</title>
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+  </head>
+  <body>
+    <div id="chat-container">
+      <div id="user-list">
+        <h3>Following Users</h3>
+        <ul>
+          {% for user in following_users %}
+            <li data-user-id="{{ user.id }}" class="user-item">
+              <img src="{{ user.profile.profile_image.url }}"
+                   alt="{{ user.username }}"
+                   class="profile-image" />
+              {{ user.username }}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div id="chat-window">
+        <div id="chat-header">
+          <img id="chat-profile-image"
+               src="https://via.placeholder.com/150"
+               alt="Profile Image"
+               class="profile-image" />
+          <span id="chat-username"></span>
+        </div>
+        <div id="messages"></div>
+        <form id="message-form" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="text" id="message-input" placeholder="Type a message..." />
+          <input type="file" id="image-input" accept="image/*" class="hidden-input" />
+          <button type="submit">Send</button>
+          <label for="image-input" class="upload-button">📷</label>
+        </form>
+      </div>
+    </div>
+    <script src="{% static 'js/project.js' %}"></script>
+  </body>
+</html>
